@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d1020">
-<title>Shape Swarm</title>
+<title>Geometrical Onslaught</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%20xmlns%3Ac2pa%3D%22http%3A//c2pa.org/manifest%22%3E%3Cmetadata%3E%3Cc2pa%3Amanifest%3EAAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTozM2U1MmNlNy1hMGQ1LTQ4NDgtYWE1Zi0yOTRjYmE0ZTkzN2EAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaM1pvO5v6hfGuP4gyJ%2BfSMcAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpkMDEyMzc4Ni1hMjgxLTRhZTUtODZlNi1iMTI5NWY5MDBkYTdscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNogZAA8A0zs5WBdbwKqeHkbgAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggxe4d4VNTivjdaUrp3xPyfXXrP65QEzlnKSrBk3OkHjmkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaKLkt3K4zDftPFcTnuJdNNcAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCDsgL5xLZtgnX4gbEPgBOApk22jkBuW4RiJheIS7MspsmRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBh9Zmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjMzZTUyY2U3LWEwZDUtNDg0OC1hYTVmLTI5NGNiYTRlOTM3YS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmI2ZWVhMzkwLTU2ZTYtNDczYy1hOWExLTkwOTk3YWQ5Y2MwNHJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCDF7h3hU1OK%2BN1pSunfE/J9des/rlATOWcpKsGTc6QeOaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggxtohvrDBNnqq3l7K2%2BewUdyhKOWYow3jGANZlir%2BLZ%2BiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggnpWj2A%2B3MBU%2B5hk3nbID0aQnZ4HGp8qj6dKuRpE3m%2BZ0Y2xhaW1fZ2VuZXJhdG9yX2luZm%2BjZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj%2BOPEz5o%2BnMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1%2BUCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9%2B1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQPFI6yGN45QgK/QQ8QtPf3vedgtb29nhtMDtKRobcpXVleDD6cAK2xwHtL6cZ4ww%2BwPYn8IC%2BVGCrsY8FcEoJT8%3D%3C/c2pa%3Amanifest%3E%3C/metadata%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20fill%3D%22%230d1020%22/%3E%3Ccircle%20cx%3D%22256%22%20cy%3D%22256%22%20r%3D%22120%22%20fill%3D%22%234ff0d644%22%20stroke%3D%22%234ff0d6%22%20stroke-width%3D%2212%22/%3E%3Cpolygon%20points%3D%22256%2C196%20308%2C226%20308%2C286%20256%2C316%20204%2C286%20204%2C226%22%20fill%3D%22%234ff0d6%22/%3E%3Cpolygon%20points%3D%2296%2C120%20136%2C190%2056%2C190%22%20fill%3D%22%23ff7a3d%22/%3E%3Crect%20x%3D%22380%22%20y%3D%2290%22%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23c9a066%22/%3E%3Ccircle%20cx%3D%22110%22%20cy%3D%22410%22%20r%3D%2234%22%20fill%3D%22%234fb4ff%22/%3E%3Cpolygon%20points%3D%22410%2C380%20450%2C420%20410%2C460%20370%2C420%22%20fill%3D%22%238ff5d2%22/%3E%3C/svg%3E">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -418,7 +418,7 @@ p {
 .Glyphs span:nth-child(3) { animation-delay:-1.4s; }
 .Glyphs span:nth-child(4) { animation-delay:-2.1s; }
 .MenuWrap h1 {
-    font-size:clamp(46px,7.2vw,104px);
+    font-size:clamp(28px,3.6vw,54px); padding-right:.12em;
     line-height:.9;
     margin:8px 0 16px;
     text-transform:uppercase;
@@ -547,7 +547,7 @@ p {
 @media (max-height:520px) {
     .MenuWrap { column-gap:16px; row-gap:8px; }
     .Glyphs { display:none; }
-    .MenuWrap h1 { font-size:clamp(34px,6vw,52px); margin:0 0 10px; }
+    .MenuWrap h1 { font-size:clamp(24px,4vw,38px); margin:0 0 10px; }
     .MenuWrap .Lead { display:none; }
     .PlayBtn { font-size:20px; padding:10px 28px; min-height:48px; }
     .Cont { padding:6px 12px; margin-top:8px; }
@@ -595,6 +595,32 @@ p {
 .Card.Pact { background:linear-gradient(160deg,rgba(58,28,92,.95),rgba(36,16,44,.95)); }
 .AcctCard { display:flex; gap:12px; align-items:center; text-align:left; margin-bottom:6px; }
 .AcctCard img { width:48px; height:48px; border-radius:50%; }
+
+.MPanels .T-run,.MPanels .T-shop,.MPanels .T-mut,.MPanels .T-rank { display:none; }
+.MPanels.Tab_run .T-run,.MPanels.Tab_shop .T-shop,.MPanels.Tab_mut .T-mut,.MPanels.Tab_rank .T-rank { display:block; }
+.BList { margin-top:10px; display:flex; flex-direction:column; gap:4px; }
+.BRow { display:grid; grid-template-columns:34px 1fr auto; align-items:center; gap:8px; padding:7px 10px; border-radius:10px; background:rgba(21,26,54,.7); text-align:left; font-size:14px; }
+.BRow.Me { outline:2px solid var(--Cyan); background:rgba(31,38,80,.95); }
+.BRank { font-weight:700; color:var(--Dim); }
+.R1 .BRank { color:#ffd54a; } .R2 .BRank { color:#cfd8ea; } .R3 .BRank { color:#e0955a; }
+.BName { display:flex; align-items:center; gap:8px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.BName img,.Profile img { width:22px; height:22px; border-radius:50%; flex:none; }
+.BScore { font-weight:700; color:var(--Amber); } .BScore small { color:var(--Dim); margin-left:5px; font-size:11px; }
+.BMine { margin-top:10px; font-weight:700; color:var(--Cyan); }
+.Join,.Profile { margin-top:14px; max-width:430px; padding:12px 14px; border-radius:14px; background:rgba(16,20,46,.74); border:1px solid #2a3166; display:flex; flex-direction:column; gap:6px; align-items:flex-start; backdrop-filter:blur(6px); }
+.Profile { flex-direction:row; align-items:center; gap:10px; }
+.Profile img { width:38px; height:38px; } .Profile div { display:flex; flex-direction:column; }
+.Join span,.Profile span { font-size:13px; color:var(--Dim); line-height:1.4; }
+.JoinBtn { font:inherit; font-weight:700; font-size:15px; color:#07131a; background:linear-gradient(135deg,#4ff0d6,#8bf7e6); border:0; border-radius:10px; padding:9px 18px; cursor:pointer; margin-top:4px; }
+.JoinBtn:hover { filter:brightness(1.1); }
+#Welcome { position:fixed; inset:0; z-index:30; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(5,7,18,.82); backdrop-filter:blur(8px); }
+#Welcome.On { display:flex; animation:FadeIn .3s both; }
+.WBox { max-width:460px; text-align:center; padding:26px; border-radius:20px; background:rgba(16,20,46,.95); border:1px solid #2a3166; display:flex; flex-direction:column; gap:12px; align-items:center; box-shadow:0 0 60px rgba(79,240,214,.18); }
+.WBox h2 { margin:0; font-size:26px; } .WBox p { margin:0; color:#b7bfe6; line-height:1.5; font-size:15px; } .WBox small { color:var(--Dim); }
+.WIcons { display:flex; gap:12px; }
+@media (max-height:520px) { .WBox { padding:14px; gap:8px; } .WBox h2 { font-size:20px; } .WBox p { font-size:13px; } }
+.MFoot > div:last-child { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
+.MFoot .Ghost { margin-left:0; }
 </style>
 </head>
 
@@ -603,10 +629,10 @@ p {
 <div id="TopProbe"></div>
 <div id="BottomProbe"></div>
 <div id="UiLayer" class="On"></div>
-<div id="Rotate"><div><b>⟳</b><h2>Rotate your device</h2><p>Shape Swarm plays in landscape on phones.</p></div></div>
+<div id="Rotate"><div><b>⟳</b><h2>Rotate your device</h2><p>Geometrical Onslaught plays in landscape on phones.</p></div></div>
 
 <script>
-/* Shape Swarm - game logic */
+/* Geometrical Onslaught - game logic */
 const GetById = Id => document.getElementById(Id);
 const Canvas = GetById('GameCanvas'), Context = Canvas.getContext('2d'), Ui = GetById('UiLayer');
 const Arena = 2400, Tau = Math.PI * 2, PlayerRadius = 14, JoyRadius = 55;
@@ -1170,17 +1196,19 @@ const WS = Workshop.map(W => {const L = Meta.Up[W.Key] || 0, C = WorkshopCost(L,
  Ui.innerHTML = `<div class="MenuWrap ${Fresh ? 'Enter' : ''}">
  <div class="MHero">
   <div class="Glyphs Rise" style="--d:0">${Glyphs}</div>
-  <h1 class="Rise" style="--d:1">Shape<br>Swarm</h1>
+  <h1 class="Rise" style="--d:1">Geometrical<br>Onslaught</h1>
   <p class="Lead Rise" style="--d:2">Master Fire, Water, Earth and Wind. Every round has an objective: complete it for a bonus upgrade, fail it and lose health.</p>
   <div class="Rise" style="--d:3"><button class="PlayBtn" data-act="play"><span>▶</span>Play</button>${ContinueHtml()}</div>
   <div class="Loadout Rise" style="--d:4"><b>${SelMode}</b> · starting with <b style="color:${Elems[SelElem].Color}">${SelElem}</b>${Bst}</div>
+  ${JoinCard()}
   ${MenuNote ? '<div class="Note">' + MenuNote + '</div>' : ''}
  </div>
- <div class="MPanels Tab_${MenuTab}"><div class="Tabs Rise" style="--d:1"><button class="TabBtn ${MenuTab === 'run' ? 'On' : ''}" data-tab="run">Run</button><button class="TabBtn ${MenuTab === 'shop' ? 'On' : ''}" data-tab="shop">Workshop</button><button class="TabBtn ${MenuTab === 'mut' ? 'On' : ''}" data-tab="mut">Mutators${Object.values(Mut).some(Boolean) ? ' · ' + Object.values(Mut).filter(Boolean).length : ''}</button></div>
+ <div class="MPanels Tab_${MenuTab}"><div class="Tabs Rise" style="--d:1"><button class="TabBtn ${MenuTab === 'run' ? 'On' : ''}" data-tab="run">Run</button><button class="TabBtn ${MenuTab === 'shop' ? 'On' : ''}" data-tab="shop">Workshop</button><button class="TabBtn ${MenuTab === 'mut' ? 'On' : ''}" data-tab="mut">Mutators${Object.values(Mut).some(Boolean) ? ' · ' + Object.values(Mut).filter(Boolean).length : ''}</button><button class="TabBtn ${MenuTab === 'rank' ? 'On' : ''}" data-tab="rank">Ranking</button></div>
   <div class="Panel Rise T-run" style="--d:2"><div class="PTitle">Mode</div><div class="PGrid3">${ModeCards}</div></div>
   <div class="Panel Rise T-run" style="--d:3"><div class="PTitle">Starting element</div><div class="PGrid2">${ElemCards}</div></div>
   <div class="Panel Rise T-shop" style="--d:4"><div class="PTitle">Workshop <b style="float:right;color:var(--Amber)">◆ ${Meta.Shards} shards</b></div><div class="PGrid3 WsScroll">${WS}</div></div>
   <div class="Panel Rise T-mut" style="--d:5"><div class="PTitle">Mutators <b style="float:right;color:var(--Coral)">+20% shards each</b></div><div class="PGrid2 WsScroll">${MutChips}</div></div>
+ <div class="Panel Rise T-rank" style="--d:2">${BoardHtml()}</div>
  </div>
  <div class="MFoot Rise" style="--d:5"><div>${Hints}</div><div><button class="Ghost" data-act="acct">${Acct ? '☁ ' + HtmlEsc(Acct.name.split(' ')[0]) : '☁ Sign in'}</button><button class="Ghost" data-act="settings">Settings</button><button class="Ghost" data-act="export">Export saves</button><button class="Ghost" data-act="import">Import saves</button></div></div>
 </div>`;
@@ -1281,7 +1309,7 @@ function ImportSaves(){
     Reader.onload = () => {
       let Data = null; try{Data = JSON.parse(Reader.result)}catch(Err){}
       if(!Data || Data.Game !== 'ShapeSwarm' || !Data.Saves || typeof Data.Saves !== 'object'){
-        MenuNote = 'Import failed: not a Shape Swarm save file.'; ShowMenu(); return;
+        MenuNote = 'Import failed: not a Geometrical Onslaught save file.'; ShowMenu(); return;
       }
       if(Data.Sig !== H53(SealSalt + JSON.stringify([Data.Best, Data.Saves]), 3)){MenuNote = 'Import failed: this file was edited or was not exported by this game.'; ShowMenu(); return}
       let Count = 0;
@@ -2066,7 +2094,7 @@ GameOver = function(Won){
  Meta.Shards += LastGain; SaveMeta();
  const Mk = ModeKey, Rd = Round, Lv = Player.Level, Kl = RunStats.Kills, Tm = FormatTime(RunStats.Time), El = SelElem;
  GameOverV3(Won);
- ShareText = 'Shape Swarm · ' + Mk + ' · ' + (Won ? 'Victory' : 'Fell') + ' at round ' + Rd + ' · Lv ' + Lv + ' · ' + Kl + ' kills · ' + Tm + ' with ' + El;
+ ShareText = 'Geometrical Onslaught · ' + Mk + ' · ' + (Won ? 'Victory' : 'Fell') + ' at round ' + Rd + ' · Lv ' + Lv + ' · ' + Kl + ' kills · ' + Tm + ' with ' + El;
  const Row = Ui.querySelector('.Row'); if(!Row) return;
  Row.insertAdjacentHTML('beforebegin', `<div class="Recap">+${LastGain} shards ◆ (total ${Meta.Shards})${Score > Prev ? '<br>★ New best time!' : ''}</div>`);
  Row.insertAdjacentHTML('beforeend', '<button class="Btn Alt" data-act="share">Share run</button>');
@@ -2456,7 +2484,7 @@ TraitTick = function(Dt){TraitTickV7(Dt); for(const En of Enemies) if(En.Boss &&
    SETUP: Firebase console -> Project settings -> Your apps -> Web app -> copy the config here.
    Also enable Authentication -> Google, create a Firestore database, and add your site's domain
    under Authentication -> Settings -> Authorized domains. Sign-in does not work from file://        */
-const FirebaseConfig = {apiKey: "AIzaSyDqff39vTZzH4uPl0H70LGcyHWUvWHeDoM", authDomain: "ex-gsfbc-750.firebaseapp.com", projectId: "ex-gsfbc-750", appId: "1:402720205290:web:e08098fb0565d927eeea93"};
+const FirebaseConfig = {apiKey: '', authDomain: '', projectId: '', appId: ''};
 const FbReady = !!(FirebaseConfig.apiKey && FirebaseConfig.projectId);
 const FbBase = 'https://www.gstatic.com/firebasejs/10.14.1/';
 let Fb = null, Acct = null, CloudState = '', CloudLast = 0, CloudSnap = '', CloudBusy = false;
@@ -2505,7 +2533,7 @@ async function FbInit(){
  try{
   const M = await FbLoad();
   M.Au.onAuthStateChanged(M.auth, async U => {
-   if(!U){Acct = null; CloudState = ''; RefreshAcct(); return}
+   if(!U){Acct = null; CloudState = ''; Board.Rows = null; RefreshAcct(); MaybeWelcome(); return}
    Acct = {uid: U.uid, name: U.displayName || U.email || 'Player', email: U.email || '', photo: /^https:/.test(U.photoURL || '') ? U.photoURL : ''};
    const Prev = StorageGet('ShapeSwarmUid');
    if(Prev && Prev !== U.uid) WipeLocal();
@@ -2543,6 +2571,67 @@ GameOver = function(W){GameOverV8(W); setTimeout(() => CloudPush(true), 800)};
 document.addEventListener('visibilitychange', () => {if(document.hidden) CloudPush(false)});
 setInterval(() => CloudPush(false), 20000);
 if(FbReady) FbInit();
+
+/* ---------- v9: global ranking, welcome / sign-up onboarding, profile card ---------- */
+let Board = {Mode: 'Standard', Rows: null, At: 0, Loading: false, Err: '', Mine: null, Rank: 0};
+const MenuOnly = () => {if(Mode === 'menu' && Ui.querySelector('.MenuWrap')) ShowMenu()};
+async function BoardLoad(Force){
+ if(!FbReady || Board.Loading) return;
+ if(!Force && Board.Rows && Date.now() - Board.At < 30000) return;
+ Board.Loading = true; Board.Err = '';
+ try{
+  const M = await FbLoad(), Col = M.F.collection(M.db, 'boards', Board.Mode, 'entries');
+  const Snap = await M.F.getDocs(M.F.query(Col, M.F.orderBy('score', 'desc'), M.F.limit(25)));
+  Board.Rows = Snap.docs.map(D => D.data()); Board.Mine = null;
+  if(Acct){
+   const Me = await M.F.getDoc(M.F.doc(M.db, 'boards', Board.Mode, 'entries', Acct.uid));
+   if(Me.exists()){Board.Mine = Me.data(); const C = await M.F.getCountFromServer(M.F.query(Col, M.F.where('score', '>', Board.Mine.score))); Board.Rank = C.data().count + 1}
+  }
+  Board.At = Date.now();
+ }catch(Err){Board.Err = Err.code || Err.message}
+ Board.Loading = false; MenuOnly();
+}
+function BoardEnsure(){if(FbReady && !Board.Loading && !Board.Err && (!Board.Rows || Date.now() - Board.At > 30000)) BoardLoad(false)}
+function BoardHtml(){
+ const Chips = Object.keys(Modes).map(K => `<button class="Pick BMode ${K === Board.Mode ? 'Sel' : ''}" style="--Chip:#4ff0d6" data-bmode="${K}"><span class="PName">${K}</span></button>`).join('');
+ let Body;
+ if(!FbReady) Body = '<div class="Note">Global ranking goes live once Firebase is set up. Your personal records:</div>' + Object.keys(Modes).map(K => `<div class="BRow"><span class="BRank">•</span><span class="BName">${K}</span><span class="BScore">${Best[K] ? FormatTime(Best[K]) : '—'}</span></div>`).join('');
+ else if(Board.Err) Body = `<div class="Note">Ranking unavailable: ${HtmlEsc(Board.Err)}</div>`;
+ else if(!Board.Rows) Body = '<div class="Note">Loading ranking…</div>';
+ else if(!Board.Rows.length) Body = '<div class="Note">No scores yet. Be the first!</div>';
+ else Body = Board.Rows.map((R, I) => `<div class="BRow ${Acct && R.uid === Acct.uid ? 'Me' : ''} R${I + 1}"><span class="BRank">${I + 1}</span><span class="BName">${/^https:/.test(R.photo || '') ? `<img alt="" referrerpolicy="no-referrer" src="${HtmlEsc(R.photo)}">` : ''}${HtmlEsc(R.name || 'Player')}</span><span class="BScore">${FormatTime(R.score)}${R.mult > 1 ? `<small>×${R.mult}</small>` : ''}</span></div>`).join('');
+ const Foot = !FbReady ? '' : Acct ? (Board.Mine ? `<div class="BMine">You: #${Board.Rank} · ${FormatTime(Board.Mine.score)}</div>` : '<div class="BMine">Finish a run to get ranked.</div>') : '<button class="JoinBtn" data-act="signin">Sign in to get ranked</button>';
+ return `<div class="PTitle">Global ranking <b style="float:right;color:var(--Amber)">time × mutator bonus</b></div><div class="PGrid3">${Chips}</div><div class="BList WsScroll">${Body}</div>${Foot}`;
+}
+async function SubmitScore(ModeName, Time, Rd, Lv, Kl, MutN){
+ if(!Acct || !FbReady || Time < 10) return null;
+ const M = await FbLoad(), Mult = +(1 + .2 * MutN).toFixed(1), Score = Math.floor(Time * Mult);
+ const Ref = M.F.doc(M.db, 'boards', ModeName, 'entries', Acct.uid), Old = await M.F.getDoc(Ref), OldScore = Old.exists() ? Old.data().score : 0;
+ if(Score > OldScore) await M.F.setDoc(Ref, {uid: Acct.uid, name: Acct.name.slice(0, 30), photo: Acct.photo, score: Score, time: Math.floor(Time), mult: Mult, round: Rd, level: Lv, kills: Kl, Updated: Date.now()});
+ const C = await M.F.getCountFromServer(M.F.query(M.F.collection(M.db, 'boards', ModeName, 'entries'), M.F.where('score', '>', Math.max(Score, OldScore))));
+ Board.At = 0; return {rank: C.data().count + 1, best: Math.max(Score, OldScore)};
+}
+const GameOverV9 = GameOver;
+GameOver = function(W){
+ const T = RunStats.Time, Rd = Round, Lv = Player.Level, Kl = RunStats.Kills, MN = Object.values(RM()).filter(Boolean).length, MK = ModeKey;
+ GameOverV9(W);
+ SubmitScore(MK, T, Rd, Lv, Kl, MN).then(R => {if(R){const E = Ui.querySelector('.Recap'); if(E) E.insertAdjacentHTML('beforeend', '<br>🌐 Global rank #' + R.rank + ' · ' + MK)}}).catch(() => {});
+};
+Ui.addEventListener('click', Ev => {
+ const B = Ev.target.closest('button'); if(!B || !B.dataset.bmode) return;
+ Board.Mode = B.dataset.bmode; Board.Rows = null; Board.Err = ''; BoardLoad(true); MenuOnly(); Ev.stopImmediatePropagation();
+}, true);
+
+function JoinCard(){
+ if(!FbReady) return '';
+ if(Acct) return `<div class="Profile Rise" style="--d:4">${/^https:/.test(Acct.photo) ? `<img alt="" referrerpolicy="no-referrer" src="${HtmlEsc(Acct.photo)}">` : ''}<div><b>${HtmlEsc(Acct.name)}</b><span>${HtmlEsc(CloudState || 'Signed in')}</span></div></div>`;
+ return '<div class="Join Rise" style="--d:4"><b>Create your free account</b><span>Sign up with Google to keep your progress on every device and join the global ranking.</span><button class="JoinBtn" data-act="signin">Continue with Google</button></div>';
+}
+const WelcomeEl = document.createElement('div'); WelcomeEl.id = 'Welcome';
+WelcomeEl.innerHTML = `<div class="WBox"><div class="WIcons">${ElemNames.map(N => ElemIcon(N, 26)).join('')}</div><h2>Welcome to Geometrical Onslaught</h2><p>Create a free account in one tap. Your progress, Workshop shards and best times follow you to every device, and you can climb the global ranking.</p><button class="PlayBtn" data-w="google">Continue with Google</button><button class="Ghost" data-w="guest">Play as guest</button><small>New here? Signing in with Google creates your account automatically.</small></div>`;
+document.body.appendChild(WelcomeEl);
+WelcomeEl.addEventListener('click', Ev => {const B = Ev.target.closest('button'); if(!B) return; WelcomeEl.classList.remove('On'); if(B.dataset.w === 'google') SignIn()});
+function MaybeWelcome(){if(!FbReady || Acct || Mode !== 'menu' || StorageGet('GOWelcome')) return; StorageSet('GOWelcome', '1'); WelcomeEl.classList.add('On')}
 
 /* ---------- attract mode: a live demo fights behind the menu ---------- */
 const Demo = {T: 0, Foes: [], Shots: [], Fx: [], Cd: 0, Spawn: 0, Aim: 0, Shot: 0, Kills: 0};
@@ -2615,7 +2704,7 @@ function DrawAttract(){
 
 /* menu gets a see-through layer so the demo shows behind it */
 const ShowMenuLive = ShowMenu;
-ShowMenu = function(){ShowMenuLive(); Ui.classList.add('Menu')};
+ShowMenu = function(){ShowMenuLive(); Ui.classList.add('Menu'); if(MenuTab === 'rank') BoardEnsure()};
 
 for(const K of Object.keys(Modes)) SaveStore.Get(K);
 if(Tampered) MenuNote = 'A modified save was detected and reset.';
