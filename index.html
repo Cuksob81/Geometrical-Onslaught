@@ -1143,7 +1143,7 @@ const WS = Workshop.map(W => {const L = Meta.Up[W.Key] || 0, C = WorkshopCost(L,
   <div class="Loadout Rise" style="--d:4"><b>${SelMode}</b> · starting with <b style="color:${Elems[SelElem].Color}">${SelElem}</b>${Bst}</div>
   ${MenuNote ? '<div class="Note">' + MenuNote + '</div>' : ''}
  </div>
- <div class="MPanels Tab_${MenuTab}"><div class="Tabs Rise" style="--d:1"><button class="TabBtn ${MenuTab === 'run' ? 'On' : ''}" data-tab="run">Run</button><button class="TabBtn ${MenuTab === 'shop' ? 'On' : ''}" data-tab="shop">Workshop · ◆ ${Meta.Shards}</button><button class="TabBtn ${MenuTab === 'mut' ? 'On' : ''}" data-tab="mut">Mutators${Object.values(Mut).some(Boolean) ? ' · ' + Object.values(Mut).filter(Boolean).length : ''}</button></div>
+ <div class="MPanels Tab_${MenuTab}"><div class="Tabs Rise" style="--d:1"><button class="TabBtn ${MenuTab === 'run' ? 'On' : ''}" data-tab="run">Run</button><button class="TabBtn ${MenuTab === 'shop' ? 'On' : ''}" data-tab="shop">Workshop</button><button class="TabBtn ${MenuTab === 'mut' ? 'On' : ''}" data-tab="mut">Mutators${Object.values(Mut).some(Boolean) ? ' · ' + Object.values(Mut).filter(Boolean).length : ''}</button></div>
   <div class="Panel Rise T-run" style="--d:2"><div class="PTitle">Mode</div><div class="PGrid3">${ModeCards}</div></div>
   <div class="Panel Rise T-run" style="--d:3"><div class="PTitle">Starting element</div><div class="PGrid2">${ElemCards}</div></div>
   <div class="Panel Rise T-shop" style="--d:4"><div class="PTitle">Workshop <b style="float:right;color:var(--Amber)">◆ ${Meta.Shards} shards</b></div><div class="PGrid3 WsScroll">${WS}</div></div>
