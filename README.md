@@ -6,4 +6,4 @@
   <img src="QR.png" alt="Shape Swarm QR Code" width="250">
 </a>
 
-# A QR Code one file based free online shooter game I made genuinely for me only but now it's not.
+A QR code one file based free online shooter game I made genuinely for me only but now it's not.
