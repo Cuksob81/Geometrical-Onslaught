@@ -32,6 +32,8 @@
 html,body {
     margin:0;
     height:100%;
+    height:var(--app-h,100%);
+    width:var(--app-w,100%);
     background:var(--Bg);
     color:var(--Ink);
     font-family:'Chakra Petch',system-ui,sans-serif;
@@ -42,8 +44,8 @@ html,body {
 canvas {
     position:fixed;
     inset:0;
-    width:100%;
-    height:100%;
+    width:var(--app-w,100%);
+    height:var(--app-h,100%);
     touch-action:none;
     display:block;
 }
@@ -537,7 +539,7 @@ p {
     .MenuWrap { grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); }
     .MPanels { grid-column:2; }
 }
-@media (max-width:760px) {
+@media (max-width:760px) and (min-height:521px) {
     .MenuWrap { grid-template-columns:1fr; grid-template-rows:auto; align-items:start; }
     .MHero,.MPanels { grid-column:1; }
     .MHero { text-align:center; }
@@ -613,14 +615,27 @@ p {
 .Join span,.Profile span { font-size:13px; color:var(--Dim); line-height:1.4; }
 .JoinBtn { font:inherit; font-weight:700; font-size:15px; color:#07131a; background:linear-gradient(135deg,#4ff0d6,#8bf7e6); border:0; border-radius:10px; padding:9px 18px; cursor:pointer; margin-top:4px; }
 .JoinBtn:hover { filter:brightness(1.1); }
-#Welcome { position:fixed; inset:0; z-index:30; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(5,7,18,.82); backdrop-filter:blur(8px); }
-#Welcome.On { display:flex; animation:FadeIn .3s both; }
-.WBox { max-width:460px; text-align:center; padding:26px; border-radius:20px; background:rgba(16,20,46,.95); border:1px solid #2a3166; display:flex; flex-direction:column; gap:12px; align-items:center; box-shadow:0 0 60px rgba(79,240,214,.18); }
-.WBox h2 { margin:0; font-size:26px; } .WBox p { margin:0; color:#b7bfe6; line-height:1.5; font-size:15px; } .WBox small { color:var(--Dim); }
-.WIcons { display:flex; gap:12px; }
-@media (max-height:520px) { .WBox { padding:14px; gap:8px; } .WBox h2 { font-size:20px; } .WBox p { font-size:13px; } }
 .MFoot > div:last-child { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
 .MFoot .Ghost { margin-left:0; }
+
+#UiLayer,#Rotate { width:var(--app-w,100%); height:var(--app-h,100%); inset:auto; left:0; top:0; }
+#UiLayer { -webkit-overflow-scrolling:touch; }
+#Gate { position:fixed; left:0; top:0; width:var(--app-w,100%); height:var(--app-h,100%); z-index:25; display:none; align-items:center; justify-content:center; padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left)); overflow:auto;
+  background:radial-gradient(ellipse at 50% 40%,rgba(13,16,32,.62) 0%,rgba(8,10,24,.95) 75%); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); }
+#Gate.On { display:flex; animation:FadeIn .35s both; }
+.GBox { width:100%; max-width:400px; margin:auto; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; }
+.GIcons { display:flex; gap:14px; } .GIcons svg { animation:Bob 3s ease-in-out infinite; } .GIcons svg:nth-child(2) { animation-delay:-.7s; } .GIcons svg:nth-child(3) { animation-delay:-1.4s; } .GIcons svg:nth-child(4) { animation-delay:-2.1s; }
+.GBox h1 { margin:4px 0 0; font-size:clamp(34px,9vw,58px); line-height:.95; text-transform:uppercase; background:linear-gradient(120deg,#e8ecff 0%,#4ff0d6 48%,#9b7bff 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; filter:drop-shadow(0 0 22px rgba(79,240,214,.3)); padding-right:.1em; }
+.GTag { margin:0 0 10px; color:#b7bfe6; font-size:16px; }
+.GBtn { font:inherit; font-weight:700; font-size:17px; width:100%; display:flex; align-items:center; justify-content:center; gap:12px; min-height:54px; padding:12px 18px; border:0; border-radius:14px; background:#fff; color:#1f2430; cursor:pointer; box-shadow:0 6px 24px rgba(79,240,214,.18); transition:transform .12s,box-shadow .12s; }
+.GBtn:hover { transform:translateY(-2px); box-shadow:0 10px 30px rgba(79,240,214,.3); } .GBtn:active { transform:scale(.97); }
+.GGuest { font:inherit; font-weight:700; font-size:14px; color:var(--Dim); background:none; border:0; padding:10px; cursor:pointer; text-decoration:underline; text-underline-offset:3px; } .GGuest:hover { color:var(--Ink); }
+.GBox small { color:var(--Dim); line-height:1.5; max-width:340px; } .GErr { margin:0; color:#ff9bab; font-size:13px; } .GMsg { margin:0; color:var(--Dim); }
+.GSpin { width:34px; height:34px; border-radius:50%; border:3px solid #2a3166; border-top-color:var(--Cyan); animation:Spin .8s linear infinite; margin-top:8px; }
+@keyframes Spin { to { transform:rotate(360deg); } }
+@media (max-height:520px) { .GBox { gap:6px; } .GIcons { display:none; } .GBox h1 { font-size:30px; } .GBox h1 br { display:none; } .GTag { margin:0 0 4px; font-size:14px; } .GBtn { min-height:46px; } .GBox small { font-size:12px; } }
+body.GateOn #UiLayer { visibility:hidden; }
+@media (max-height:520px) { .Join,.Profile { margin-top:8px; padding:8px 10px; gap:4px; } .Join span { display:none; } .JoinBtn { padding:7px 14px; font-size:14px; } .Tabs { gap:4px; } .TabBtn { padding:7px 6px; font-size:13px; } }
 </style>
 </head>
 
@@ -641,8 +656,11 @@ let Width, Height, Dpr, Zoom, SafeTop = 0, SafeBottom = 0;
 var RenderScale = 1, FpsGap = 0, FpsBox = null;
 function Resize(){
  Dpr = (devicePixelRatio || 1) * RenderScale;
- Width = innerWidth;
- Height = innerHeight;
+ const VV = window.visualViewport;
+ Width = Math.round(VV ? VV.width : innerWidth);
+ Height = Math.round(VV ? VV.height : innerHeight);
+ document.documentElement.style.setProperty('--app-w', Width + 'px');
+ document.documentElement.style.setProperty('--app-h', Height + 'px');
  Canvas.width = Width * Dpr;
  Canvas.height = Height * Dpr;
  Zoom = Math.min(Width, Height) / 520;
@@ -651,10 +669,24 @@ function Resize(){
 }
 
 addEventListener('resize', Resize);
+if(window.visualViewport) visualViewport.addEventListener('resize', Resize);
+addEventListener('orientationchange', () => {setTimeout(Resize, 120); setTimeout(Resize, 600)});
+document.addEventListener('fullscreenchange', () => setTimeout(Resize, 100));
+addEventListener('pageshow', Resize);
+setTimeout(Resize, 400);
 Resize();
 
 const Clamp = (V, Lo, Hi) => Math.max(Lo, Math.min(Hi, V)), Round2 = V => Math.round(V * 100) / 100, RandRange = (Lo, Hi) => Lo + Math.random() * (Hi - Lo);
 const Shuffle = A => A.slice().sort(() => Math.random() - .5);
+const DataEpoch = 2;
+var WasWiped = false;
+(function(){
+ try{
+  if(localStorage.getItem('GOEpoch') === String(DataEpoch)) return;
+  for(const K of Object.keys(localStorage)) if(/^(ShapeSwarm|GO)/.test(K)){localStorage.removeItem(K); WasWiped = true}
+  localStorage.setItem('GOEpoch', String(DataEpoch)); localStorage.setItem('ShapeSwarmSealed', '1');
+ }catch(Err){}
+})();
 var Tampered = 0;
 const SealSalt = 'ss/4.7·k9x';
 const H53 = (Str, Seed = 0) => {let H1 = 0xdeadbeef ^ Seed, H2 = 0x41c6ce57 ^ Seed; for(let I = 0; I < Str.length; I++){const C = Str.charCodeAt(I); H1 = Math.imul(H1 ^ C, 2654435761); H2 = Math.imul(H2 ^ C, 1597334677)} H1 = Math.imul(H1 ^ (H1 >>> 16), 2246822507) ^ Math.imul(H2 ^ (H2 >>> 13), 3266489909); H2 = Math.imul(H2 ^ (H2 >>> 16), 2246822507) ^ Math.imul(H1 ^ (H1 >>> 13), 3266489909); return (4294967296 * (2097151 & H2) + (H1 >>> 0)).toString(36)};
@@ -1210,7 +1242,7 @@ const WS = Workshop.map(W => {const L = Meta.Up[W.Key] || 0, C = WorkshopCost(L,
   <div class="Panel Rise T-mut" style="--d:5"><div class="PTitle">Mutators <b style="float:right;color:var(--Coral)">+20% shards each</b></div><div class="PGrid2 WsScroll">${MutChips}</div></div>
  <div class="Panel Rise T-rank" style="--d:2">${BoardHtml()}</div>
  </div>
- <div class="MFoot Rise" style="--d:5"><div>${Hints}</div><div><button class="Ghost" data-act="acct">${Acct ? '☁ ' + HtmlEsc(Acct.name.split(' ')[0]) : '☁ Sign in'}</button><button class="Ghost" data-act="settings">Settings</button><button class="Ghost" data-act="export">Export saves</button><button class="Ghost" data-act="import">Import saves</button></div></div>
+ <div class="MFoot Rise" style="--d:5"><div>${Hints}</div><div><button class="Ghost" data-act="acct">${Acct ? '☁ ' + HtmlEsc(Acct.name.split(' ')[0]) : '☁ Sign in'}</button><button class="Ghost" data-act="settings">Settings</button></div></div>
 </div>`;
  MenuNote = '';
 }
@@ -1281,56 +1313,6 @@ function LoadRun(ModeName){
   }catch(Err){return false}
 }
 
-/* =====================================================================
-   2. EXPORT / IMPORT - a save file the player owns (the permanent backup)
-   ===================================================================== */
-function ExportSaves(){
-  const Data = {Game: 'ShapeSwarm', V: SaveVersion, ExportedAt: new Date().toISOString(), Best, Saves: {}};
-  for(const K of Object.keys(Modes)){const S = SaveStore.Get(K); if(S) Data.Saves[K] = S}
-  try{
-    const File = new Blob([JSON.stringify(Object.assign(Data, {Sig: H53(SealSalt + JSON.stringify([Data.Best, Data.Saves]), 3)}))], {type: 'application/json'}), Link = document.createElement('a');
-    Link.href = URL.createObjectURL(File);
-    Link.download = 'shape-swarm-saves-' + new Date().toISOString().slice(0, 10) + '.json';
-    document.body.appendChild(Link); Link.click(); Link.remove();
-    setTimeout(() => URL.revokeObjectURL(Link.href), 2000);
-    MenuNote = 'Saves exported.';
-  }catch(Err){MenuNote = 'Export failed in this browser.'}
-  ShowMenu();
-}
-
-function ImportSaves(){
-  const Input = document.createElement('input');
-  Input.type = 'file'; Input.accept = '.json,application/json';
-  Input.onchange = () => {
-    const F = Input.files && Input.files[0]; if(!F) return;
-    if(F.size > 8e6){MenuNote = 'Import failed: file too large.'; ShowMenu(); return}
-    const Reader = new FileReader();
-    Reader.onerror = () => {MenuNote = 'Import failed: could not read the file.'; ShowMenu()};
-    Reader.onload = () => {
-      let Data = null; try{Data = JSON.parse(Reader.result)}catch(Err){}
-      if(!Data || Data.Game !== 'ShapeSwarm' || !Data.Saves || typeof Data.Saves !== 'object'){
-        MenuNote = 'Import failed: not a Geometrical Onslaught save file.'; ShowMenu(); return;
-      }
-      if(Data.Sig !== H53(SealSalt + JSON.stringify([Data.Best, Data.Saves]), 3)){MenuNote = 'Import failed: this file was edited or was not exported by this game.'; ShowMenu(); return}
-      let Count = 0;
-      for(const K of Object.keys(Modes)){
-        const S = Data.Saves[K];
-        if(!ValidSave(S)) continue;
-        if(SaveStore.Get(K) && !confirm('Replace your current ' + K + ' save with the imported one?')) continue;
-        if(SaveStore.Set(K, S)) Count++;
-      }
-      if(Data.Best && typeof Data.Best === 'object'){
-        for(const K of Object.keys(Modes)){const V = +Data.Best[K]; if(V > (Best[K] || 0)) Best[K] = V}
-        StorageSet('ShapeSwarmBest2', JSON.stringify(Best));
-      }
-      MenuNote = Count ? 'Imported ' + Count + ' save' + (Count > 1 ? 's' : '') + '.' : 'No valid saves were imported.';
-      ShowMenu();
-    };
-    Reader.readAsText(F);
-  };
-  Input.click();
-}
-
 /* menu: Continue button + Export/Import buttons */
 function ContinueHtml(){
   const S = SaveStore.Get(SelMode);
@@ -1344,8 +1326,6 @@ Ui.addEventListener('click', Ev => {
   switch(Button.dataset.act){
     case 'menu': SaveRun(); break;
     case 'continue': if(!LoadRun(SelMode)) ShowMenu(); break;
-    case 'export': ExportSaves(); break;
-    case 'import': ImportSaves(); break;
   }
 }, true);
 
@@ -2480,6 +2460,10 @@ function BossTick(En, Dt){
 const TraitTickV7 = TraitTick;
 TraitTick = function(Dt){TraitTickV7(Dt); for(const En of Enemies) if(En.Boss && En.SpawnLeft <= 0 && En.Hp > 0) BossTick(En, Dt)};
 
+/* ---------- v8: Firebase account (Google sign-in/sign-up) + cloud save ----------
+   SETUP: Firebase console -> Project settings -> Your apps -> Web app -> copy the config here.
+   Also enable Authentication -> Google, create a Firestore database, and add your site's domain
+   under Authentication -> Settings -> Authorized domains. Sign-in does not work from file://        */
 const FirebaseConfig = {
   apiKey: "AIzaSyDqff39vTZzH4uPl0H70LGcyHWUvWHeDoM",
   authDomain: "ex-gsfbc-750.firebaseapp.com",
@@ -2510,7 +2494,7 @@ async function CloudPush(Force){
  CloudBusy = true; CloudState = 'Syncing…';
  try{
   const M = await FbLoad();
-  await M.F.setDoc(M.F.doc(M.db, 'players', Acct.uid), {Name: Acct.name, Data, Sig: CloudSig(Data), Updated: Date.now()});
+  await M.F.setDoc(M.F.doc(M.db, 'players', Acct.uid), {Name: Acct.name, Data, Sig: CloudSig(Data), Epoch: DataEpoch, Updated: Date.now()});
   CloudSnap = Data; CloudLast = Date.now(); CloudState = 'Synced ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
  }catch(Err){CloudState = 'Sync failed: ' + (Err.code || Err.message)}
  CloudBusy = false; RefreshAcct();
@@ -2519,6 +2503,7 @@ async function CloudPull(){
  const M = await FbLoad(), Snap = await M.F.getDoc(M.F.doc(M.db, 'players', Acct.uid));
  if(!Snap.exists()){CloudSnap = ''; return CloudPush(true)}
  const D = Snap.data();
+ if((D.Epoch || 0) < DataEpoch){CloudSnap = ''; return CloudPush(true)}
  if(typeof D.Data !== 'string' || D.Sig !== CloudSig(D.Data)){CloudState = 'Cloud data failed the integrity check and was ignored.'; return}
  const C = JSON.parse(D.Data);
  for(const K in (C.Best || {})) if(C.Best[K] > (Best[K] || 0)) Best[K] = C.Best[K];
@@ -2534,15 +2519,15 @@ async function FbInit(){
  try{
   const M = await FbLoad();
   M.Au.onAuthStateChanged(M.auth, async U => {
-   if(!U){Acct = null; CloudState = ''; Board.Rows = null; RefreshAcct(); MaybeWelcome(); return}
+   if(!U){Acct = null; CloudState = ''; Board.Rows = null; RefreshAcct(); GateResolve(false); return}
    Acct = {uid: U.uid, name: U.displayName || U.email || 'Player', email: U.email || '', photo: /^https:/.test(U.photoURL || '') ? U.photoURL : ''};
-   const Prev = StorageGet('ShapeSwarmUid');
+   GateResolve(true); const Prev = StorageGet('ShapeSwarmUid');
    if(Prev && Prev !== U.uid) WipeLocal();
    StorageSet('ShapeSwarmUid', U.uid); CloudState = 'Syncing…'; RefreshAcct();
    try{await CloudPull()}catch(Err){CloudState = 'Sync failed: ' + (Err.code || Err.message)}
    RefreshAcct();
   });
- }catch(Err){CloudState = 'Could not load Firebase (offline?)'; RefreshAcct()}
+ }catch(Err){CloudState = 'Could not load Firebase (offline?)'; RefreshAcct(); GateResolve(false, 'Could not reach the sign-in service. Check your connection, or play as guest.')}
 }
 async function SignIn(){
  try{
@@ -2628,11 +2613,37 @@ function JoinCard(){
  if(Acct) return `<div class="Profile Rise" style="--d:4">${/^https:/.test(Acct.photo) ? `<img alt="" referrerpolicy="no-referrer" src="${HtmlEsc(Acct.photo)}">` : ''}<div><b>${HtmlEsc(Acct.name)}</b><span>${HtmlEsc(CloudState || 'Signed in')}</span></div></div>`;
  return '<div class="Join Rise" style="--d:4"><b>Create your free account</b><span>Sign up with Google to keep your progress on every device and join the global ranking.</span><button class="JoinBtn" data-act="signin">Continue with Google</button></div>';
 }
-const WelcomeEl = document.createElement('div'); WelcomeEl.id = 'Welcome';
-WelcomeEl.innerHTML = `<div class="WBox"><div class="WIcons">${ElemNames.map(N => ElemIcon(N, 26)).join('')}</div><h2>Welcome to Geometrical Onslaught</h2><p>Create a free account in one tap. Your progress, Workshop shards and best times follow you to every device, and you can climb the global ranking.</p><button class="PlayBtn" data-w="google">Continue with Google</button><button class="Ghost" data-w="guest">Play as guest</button><small>New here? Signing in with Google creates your account automatically.</small></div>`;
-document.body.appendChild(WelcomeEl);
-WelcomeEl.addEventListener('click', Ev => {const B = Ev.target.closest('button'); if(!B) return; WelcomeEl.classList.remove('On'); if(B.dataset.w === 'google') SignIn()});
-function MaybeWelcome(){if(!FbReady || Acct || Mode !== 'menu' || StorageGet('GOWelcome')) return; StorageSet('GOWelcome', '1'); WelcomeEl.classList.add('On')}
+/* login gate: auto sign-in when a session exists, otherwise a full-screen Google login (like Pocket Ants) */
+let GateState = FbReady ? 'loading' : 'done';
+const GateEl = document.createElement('div'); GateEl.id = 'Gate';
+const GoogleG = '<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>';
+function GateShow(State, Msg){
+ GateState = State;
+ const Icons = ElemNames.map(N => ElemIcon(N, 28)).join('');
+ const Body = State === 'loading'
+  ? `<div class="GSpin"></div><p class="GMsg">${HtmlEsc(Msg || 'Signing you in…')}</p>`
+  : `<button class="GBtn" data-gate="google">${GoogleG}<span>Continue with Google</span></button>${Msg ? '<p class="GErr">' + HtmlEsc(Msg) + '</p>' : ''}<button class="GGuest" data-gate="guest">Play as guest</button><small>New here? Signing in with Google creates your account automatically. Progress and ranking sync across devices.</small>`;
+ GateEl.innerHTML = `<div class="GBox"><div class="GIcons">${Icons}</div><h1>Geometrical<br> Onslaught</h1><p class="GTag">Survive the swarm. Master four elements.</p>${Body}</div>`;
+ GateEl.classList.add('On'); document.body.classList.add('GateOn');
+}
+function GateResolve(User, Msg){
+ if(User){GateState = 'done'; GateEl.classList.remove('On'); document.body.classList.remove('GateOn'); return}
+ if(GateState === 'guest') return;
+ GateShow('login', Msg);
+}
+GateEl.addEventListener('click', Ev => {
+ const B = Ev.target.closest('button'); if(!B) return;
+ if(B.dataset.gate === 'guest'){GateState = 'guest'; GateEl.classList.remove('On'); document.body.classList.remove('GateOn')}
+ else if(B.dataset.gate === 'google') SignIn();
+});
+document.body.appendChild(GateEl);
+const SignInV10 = SignIn;
+SignIn = async function(){
+ if(GateState !== 'done' && GateState !== 'guest') GateShow('loading', 'Waiting for Google…');
+ await SignInV10(); await new Promise(R => setTimeout(R, 400));
+ if(!Acct && GateState === 'loading') GateShow('login', /failed/.test(CloudState) ? CloudState : '');
+};
+if(FbReady){GateShow('loading'); setTimeout(() => {if(GateState === 'loading') GateShow('login', 'Could not reach the sign-in service. Check your connection, or play as guest.')}, 9000)}
 
 /* ---------- attract mode: a live demo fights behind the menu ---------- */
 const Demo = {T: 0, Foes: [], Shots: [], Fx: [], Cd: 0, Spawn: 0, Aim: 0, Shot: 0, Kills: 0};
@@ -2708,6 +2719,7 @@ const ShowMenuLive = ShowMenu;
 ShowMenu = function(){ShowMenuLive(); Ui.classList.add('Menu'); if(MenuTab === 'rank') BoardEnsure()};
 
 for(const K of Object.keys(Modes)) SaveStore.Get(K);
+if(WasWiped) MenuNote = 'Fresh start: all previous data was reset. Sign in to keep your new progress online.';
 if(Tampered) MenuNote = 'A modified save was detected and reset.';
 ShowMenu(); requestAnimationFrame(Loop);
 try{localStorage.setItem('ShapeSwarmSealed', '1')}catch(Err){}
