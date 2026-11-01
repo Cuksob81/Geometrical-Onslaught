@@ -2480,11 +2480,7 @@ function BossTick(En, Dt){
 const TraitTickV7 = TraitTick;
 TraitTick = function(Dt){TraitTickV7(Dt); for(const En of Enemies) if(En.Boss && En.SpawnLeft <= 0 && En.Hp > 0) BossTick(En, Dt)};
 
-/* ---------- v8: Firebase account (Google sign-in/sign-up) + cloud save ----------
-   SETUP: Firebase console -> Project settings -> Your apps -> Web app -> copy the config here.
-   Also enable Authentication -> Google, create a Firestore database, and add your site's domain
-   under Authentication -> Settings -> Authorized domains. Sign-in does not work from file://        */
-const firebaseConfig = {
+const FirebaseConfig = {
   apiKey: "AIzaSyDqff39vTZzH4uPl0H70LGcyHWUvWHeDoM",
   authDomain: "ex-gsfbc-750.firebaseapp.com",
   projectId: "ex-gsfbc-750",
