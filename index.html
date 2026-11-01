@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d1020">
-<title>Geometrical Onslaught</title>
+<title>Shape Swarm</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%20xmlns%3Ac2pa%3D%22http%3A//c2pa.org/manifest%22%3E%3Cmetadata%3E%3Cc2pa%3Amanifest%3EAAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTozM2U1MmNlNy1hMGQ1LTQ4NDgtYWE1Zi0yOTRjYmE0ZTkzN2EAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaM1pvO5v6hfGuP4gyJ%2BfSMcAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpkMDEyMzc4Ni1hMjgxLTRhZTUtODZlNi1iMTI5NWY5MDBkYTdscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNogZAA8A0zs5WBdbwKqeHkbgAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggxe4d4VNTivjdaUrp3xPyfXXrP65QEzlnKSrBk3OkHjmkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaKLkt3K4zDftPFcTnuJdNNcAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCDsgL5xLZtgnX4gbEPgBOApk22jkBuW4RiJheIS7MspsmRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBh9Zmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjMzZTUyY2U3LWEwZDUtNDg0OC1hYTVmLTI5NGNiYTRlOTM3YS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmI2ZWVhMzkwLTU2ZTYtNDczYy1hOWExLTkwOTk3YWQ5Y2MwNHJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCDF7h3hU1OK%2BN1pSunfE/J9des/rlATOWcpKsGTc6QeOaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggxtohvrDBNnqq3l7K2%2BewUdyhKOWYow3jGANZlir%2BLZ%2BiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggnpWj2A%2B3MBU%2B5hk3nbID0aQnZ4HGp8qj6dKuRpE3m%2BZ0Y2xhaW1fZ2VuZXJhdG9yX2luZm%2BjZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj%2BOPEz5o%2BnMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1%2BUCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9%2B1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQPFI6yGN45QgK/QQ8QtPf3vedgtb29nhtMDtKRobcpXVleDD6cAK2xwHtL6cZ4ww%2BwPYn8IC%2BVGCrsY8FcEoJT8%3D%3C/c2pa%3Amanifest%3E%3C/metadata%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20fill%3D%22%230d1020%22/%3E%3Ccircle%20cx%3D%22256%22%20cy%3D%22256%22%20r%3D%22120%22%20fill%3D%22%234ff0d644%22%20stroke%3D%22%234ff0d6%22%20stroke-width%3D%2212%22/%3E%3Cpolygon%20points%3D%22256%2C196%20308%2C226%20308%2C286%20256%2C316%20204%2C286%20204%2C226%22%20fill%3D%22%234ff0d6%22/%3E%3Cpolygon%20points%3D%2296%2C120%20136%2C190%2056%2C190%22%20fill%3D%22%23ff7a3d%22/%3E%3Crect%20x%3D%22380%22%20y%3D%2290%22%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23c9a066%22/%3E%3Ccircle%20cx%3D%22110%22%20cy%3D%22410%22%20r%3D%2234%22%20fill%3D%22%234fb4ff%22/%3E%3Cpolygon%20points%3D%22410%2C380%20450%2C420%20410%2C460%20370%2C420%22%20fill%3D%22%238ff5d2%22/%3E%3C/svg%3E">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -593,10 +593,8 @@ p {
 .Card:nth-child(4) { animation-delay:.21s; }
 .Pick:active,.PlayBtn:active,.TabBtn:active { transform:scale(.96); }
 .Card.Pact { background:linear-gradient(160deg,rgba(58,28,92,.95),rgba(36,16,44,.95)); }
-
-.CloudAccount{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:12px auto 0;padding:12px;background:#151a36;border:1px solid #2a3166;border-radius:12px;max-width:560px;color:var(--Ink);font-size:13px}
-.CloudAccount small{color:var(--Dim)}.CloudAccount button{font:inherit;font-weight:700;border:1px solid #4ff0d6;background:#102c31;color:#4ff0d6;border-radius:8px;padding:8px 12px;cursor:pointer}.CloudAccount button:disabled{opacity:.5;cursor:wait}
-.CloudStatus{color:var(--Dim);width:100%;font-size:12px}
+.AcctCard { display:flex; gap:12px; align-items:center; text-align:left; margin-bottom:6px; }
+.AcctCard img { width:48px; height:48px; border-radius:50%; }
 </style>
 </head>
 
@@ -605,13 +603,10 @@ p {
 <div id="TopProbe"></div>
 <div id="BottomProbe"></div>
 <div id="UiLayer" class="On"></div>
-<div id="Rotate"><div><b>⟳</b><h2>Rotate your device</h2><p>Geometrical Onslaught plays in landscape on phones.</p></div></div>
+<div id="Rotate"><div><b>⟳</b><h2>Rotate your device</h2><p>Shape Swarm plays in landscape on phones.</p></div></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
-/* Geometrical Onslaught - game logic */
+/* Shape Swarm - game logic */
 const GetById = Id => document.getElementById(Id);
 const Canvas = GetById('GameCanvas'), Context = Canvas.getContext('2d'), Ui = GetById('UiLayer');
 const Arena = 2400, Tau = Math.PI * 2, PlayerRadius = 14, JoyRadius = 55;
@@ -1175,7 +1170,7 @@ const WS = Workshop.map(W => {const L = Meta.Up[W.Key] || 0, C = WorkshopCost(L,
  Ui.innerHTML = `<div class="MenuWrap ${Fresh ? 'Enter' : ''}">
  <div class="MHero">
   <div class="Glyphs Rise" style="--d:0">${Glyphs}</div>
-  <h1 class="Rise" style="--d:1">Geometrical<br>Onslaught</h1>
+  <h1 class="Rise" style="--d:1">Shape<br>Swarm</h1>
   <p class="Lead Rise" style="--d:2">Master Fire, Water, Earth and Wind. Every round has an objective: complete it for a bonus upgrade, fail it and lose health.</p>
   <div class="Rise" style="--d:3"><button class="PlayBtn" data-act="play"><span>▶</span>Play</button>${ContinueHtml()}</div>
   <div class="Loadout Rise" style="--d:4"><b>${SelMode}</b> · starting with <b style="color:${Elems[SelElem].Color}">${SelElem}</b>${Bst}</div>
@@ -1187,7 +1182,7 @@ const WS = Workshop.map(W => {const L = Meta.Up[W.Key] || 0, C = WorkshopCost(L,
   <div class="Panel Rise T-shop" style="--d:4"><div class="PTitle">Workshop <b style="float:right;color:var(--Amber)">◆ ${Meta.Shards} shards</b></div><div class="PGrid3 WsScroll">${WS}</div></div>
   <div class="Panel Rise T-mut" style="--d:5"><div class="PTitle">Mutators <b style="float:right;color:var(--Coral)">+20% shards each</b></div><div class="PGrid2 WsScroll">${MutChips}</div></div>
  </div>
- <div class="MFoot Rise" style="--d:5"><div>${Hints}</div><div><button class="Ghost" data-act="settings">Settings</button><button class="Ghost" data-act="export">Export saves</button><button class="Ghost" data-act="import">Import saves</button></div></div>
+ <div class="MFoot Rise" style="--d:5"><div>${Hints}</div><div><button class="Ghost" data-act="acct">${Acct ? '☁ ' + HtmlEsc(Acct.name.split(' ')[0]) : '☁ Sign in'}</button><button class="Ghost" data-act="settings">Settings</button><button class="Ghost" data-act="export">Export saves</button><button class="Ghost" data-act="import">Import saves</button></div></div>
 </div>`;
  MenuNote = '';
 }
@@ -1262,12 +1257,12 @@ function LoadRun(ModeName){
    2. EXPORT / IMPORT - a save file the player owns (the permanent backup)
    ===================================================================== */
 function ExportSaves(){
-  const Data = {Game: 'GeometricalOnslaught', V: SaveVersion, ExportedAt: new Date().toISOString(), Best, Saves: {}};
+  const Data = {Game: 'ShapeSwarm', V: SaveVersion, ExportedAt: new Date().toISOString(), Best, Saves: {}};
   for(const K of Object.keys(Modes)){const S = SaveStore.Get(K); if(S) Data.Saves[K] = S}
   try{
     const File = new Blob([JSON.stringify(Object.assign(Data, {Sig: H53(SealSalt + JSON.stringify([Data.Best, Data.Saves]), 3)}))], {type: 'application/json'}), Link = document.createElement('a');
     Link.href = URL.createObjectURL(File);
-    Link.download = 'geometrical-onslaught-saves-' + new Date().toISOString().slice(0, 10) + '.json';
+    Link.download = 'shape-swarm-saves-' + new Date().toISOString().slice(0, 10) + '.json';
     document.body.appendChild(Link); Link.click(); Link.remove();
     setTimeout(() => URL.revokeObjectURL(Link.href), 2000);
     MenuNote = 'Saves exported.';
@@ -1285,8 +1280,8 @@ function ImportSaves(){
     Reader.onerror = () => {MenuNote = 'Import failed: could not read the file.'; ShowMenu()};
     Reader.onload = () => {
       let Data = null; try{Data = JSON.parse(Reader.result)}catch(Err){}
-      if(!Data || !['GeometricalOnslaught', 'ShapeSwarm'].includes(Data.Game) || !Data.Saves || typeof Data.Saves !== 'object'){
-        MenuNote = 'Import failed: not a Geometrical Onslaught save file.'; ShowMenu(); return;
+      if(!Data || Data.Game !== 'ShapeSwarm' || !Data.Saves || typeof Data.Saves !== 'object'){
+        MenuNote = 'Import failed: not a Shape Swarm save file.'; ShowMenu(); return;
       }
       if(Data.Sig !== H53(SealSalt + JSON.stringify([Data.Best, Data.Saves]), 3)){MenuNote = 'Import failed: this file was edited or was not exported by this game.'; ShowMenu(); return}
       let Count = 0;
@@ -2011,8 +2006,8 @@ function Loop(Stamp){
 /* ---------- v3: dash, hit-stop, shard workshop, recap + share, perf guard ---------- */
 let HitStop = 0, ParticleCap = 350, PerfAvg = .016, LastGain = 0, ShareText = '';
 let ShakeOn = StorageGet('ShapeSwarmShake') !== '0', Meta = {Shards: 0, Up: {}};
-try{const M = JSON.parse(StorageGet('ShapeSwarmMeta') || 'null'); if(M && typeof M.Shards === 'number') Meta = {Shards: M.Shards, Up: M.Up || {}}}catch(Err){}
-function SaveMeta(){StorageSet('ShapeSwarmMeta', JSON.stringify(Meta)); if(window.ScheduleCloudSave) window.ScheduleCloudSave(true)}
+try{const M = JSON.parse(StorageGet('ShapeSwarmMeta') || 'null'); if(M && typeof M.Shards === 'number') Meta = {Shards: M.Shards, Up: M.Up || {}, Stamp: M.Stamp || 0}}catch(Err){}
+const SaveMeta = () => {Meta.Stamp = Date.now(); StorageSet('ShapeSwarmMeta', JSON.stringify(Meta))};
 const Workshop = [
  {Key: 'Vigor', Name: 'Vigor', Perk: '+10 max HP', Glyph: '✚', Mult: 1},
  {Key: 'Might', Name: 'Might', Perk: '+1 damage', Glyph: '●', Mult: 1.2},
@@ -2071,7 +2066,7 @@ GameOver = function(Won){
  Meta.Shards += LastGain; SaveMeta();
  const Mk = ModeKey, Rd = Round, Lv = Player.Level, Kl = RunStats.Kills, Tm = FormatTime(RunStats.Time), El = SelElem;
  GameOverV3(Won);
- ShareText = 'Geometrical Onslaught · ' + Mk + ' · ' + (Won ? 'Victory' : 'Fell') + ' at round ' + Rd + ' · Lv ' + Lv + ' · ' + Kl + ' kills · ' + Tm + ' with ' + El;
+ ShareText = 'Shape Swarm · ' + Mk + ' · ' + (Won ? 'Victory' : 'Fell') + ' at round ' + Rd + ' · Lv ' + Lv + ' · ' + Kl + ' kills · ' + Tm + ' with ' + El;
  const Row = Ui.querySelector('.Row'); if(!Row) return;
  Row.insertAdjacentHTML('beforebegin', `<div class="Recap">+${LastGain} shards ◆ (total ${Meta.Shards})${Score > Prev ? '<br>★ New best time!' : ''}</div>`);
  Row.insertAdjacentHTML('beforeend', '<button class="Btn Alt" data-act="share">Share run</button>');
@@ -2457,6 +2452,98 @@ function BossTick(En, Dt){
 const TraitTickV7 = TraitTick;
 TraitTick = function(Dt){TraitTickV7(Dt); for(const En of Enemies) if(En.Boss && En.SpawnLeft <= 0 && En.Hp > 0) BossTick(En, Dt)};
 
+/* ---------- v8: Firebase account (Google sign-in/sign-up) + cloud save ----------
+   SETUP: Firebase console -> Project settings -> Your apps -> Web app -> copy the config here.
+   Also enable Authentication -> Google, create a Firestore database, and add your site's domain
+   under Authentication -> Settings -> Authorized domains. Sign-in does not work from file://        */
+const FirebaseConfig = {apiKey: '', authDomain: '', projectId: '', appId: ''};
+const FbReady = !!(FirebaseConfig.apiKey && FirebaseConfig.projectId);
+const FbBase = 'https://www.gstatic.com/firebasejs/10.14.1/';
+let Fb = null, Acct = null, CloudState = '', CloudLast = 0, CloudSnap = '', CloudBusy = false;
+const HtmlEsc = T => String(T).replace(/[&<>"']/g, C => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[C]));
+const CloudSig = D => H53(SealSalt + 'cloud' + D, 11);
+
+async function FbLoad(){
+ if(Fb) return Fb;
+ const [A, Au, F] = await Promise.all([import(FbBase + 'firebase-app.js'), import(FbBase + 'firebase-auth.js'), import(FbBase + 'firebase-firestore.js')]);
+ const App = A.initializeApp(FirebaseConfig);
+ return Fb = {Au, F, auth: Au.getAuth(App), db: F.getFirestore(App)};
+}
+function CloudSnapshot(){const Saves = {}; for(const K of Object.keys(Modes)){const S = SaveStore.Get(K); if(S && ValidSave(S)) Saves[K] = S} return {V: 1, Best, Saves, Meta}}
+function WipeLocal(){
+ Best = {}; StorageSet('ShapeSwarmBest2', '{}'); Meta = {Shards: 0, Up: {}, Stamp: 0}; SaveMeta();
+ for(const K of Object.keys(Modes)) SaveStore.Set(K, null);
+}
+async function CloudPush(Force){
+ if(!Acct || CloudBusy) return;
+ const Data = JSON.stringify(CloudSnapshot());
+ if(!Force && (Data === CloudSnap || Date.now() - CloudLast < 20000)) return;
+ CloudBusy = true; CloudState = 'Syncing…';
+ try{
+  const M = await FbLoad();
+  await M.F.setDoc(M.F.doc(M.db, 'players', Acct.uid), {Name: Acct.name, Data, Sig: CloudSig(Data), Updated: Date.now()});
+  CloudSnap = Data; CloudLast = Date.now(); CloudState = 'Synced ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+ }catch(Err){CloudState = 'Sync failed: ' + (Err.code || Err.message)}
+ CloudBusy = false; RefreshAcct();
+}
+async function CloudPull(){
+ const M = await FbLoad(), Snap = await M.F.getDoc(M.F.doc(M.db, 'players', Acct.uid));
+ if(!Snap.exists()){CloudSnap = ''; return CloudPush(true)}
+ const D = Snap.data();
+ if(typeof D.Data !== 'string' || D.Sig !== CloudSig(D.Data)){CloudState = 'Cloud data failed the integrity check and was ignored.'; return}
+ const C = JSON.parse(D.Data);
+ for(const K in (C.Best || {})) if(C.Best[K] > (Best[K] || 0)) Best[K] = C.Best[K];
+ StorageSet('ShapeSwarmBest2', JSON.stringify(Best));
+ if(C.Meta && (C.Meta.Stamp || 0) > (Meta.Stamp || 0)){Meta = {Shards: C.Meta.Shards || 0, Up: C.Meta.Up || {}, Stamp: C.Meta.Stamp}; StorageSet('ShapeSwarmMeta', JSON.stringify(Meta))}
+ for(const K in (C.Saves || {})){
+  const L = SaveStore.Get(K), R = C.Saves[K];
+  if(ValidSave(R) && (!ValidSave(L) || (R.RunStats.Time || 0) > (L.RunStats.Time || 0))) SaveStore.Set(K, R);
+ }
+ CloudSnap = ''; await CloudPush(true);
+}
+async function FbInit(){
+ try{
+  const M = await FbLoad();
+  M.Au.onAuthStateChanged(M.auth, async U => {
+   if(!U){Acct = null; CloudState = ''; RefreshAcct(); return}
+   Acct = {uid: U.uid, name: U.displayName || U.email || 'Player', email: U.email || '', photo: /^https:/.test(U.photoURL || '') ? U.photoURL : ''};
+   const Prev = StorageGet('ShapeSwarmUid');
+   if(Prev && Prev !== U.uid) WipeLocal();
+   StorageSet('ShapeSwarmUid', U.uid); CloudState = 'Syncing…'; RefreshAcct();
+   try{await CloudPull()}catch(Err){CloudState = 'Sync failed: ' + (Err.code || Err.message)}
+   RefreshAcct();
+  });
+ }catch(Err){CloudState = 'Could not load Firebase (offline?)'; RefreshAcct()}
+}
+async function SignIn(){
+ try{
+  const M = await FbLoad(), P = new M.Au.GoogleAuthProvider(); P.setCustomParameters({prompt: 'select_account'});
+  try{await M.Au.signInWithPopup(M.auth, P)}
+  catch(Err){if(Err.code === 'auth/popup-blocked' || Err.code === 'auth/operation-not-supported-in-environment') await M.Au.signInWithRedirect(M.auth, P); else throw Err}
+ }catch(Err){CloudState = (Err.code === 'auth/popup-closed-by-user' || Err.code === 'auth/cancelled-popup-request') ? '' : 'Sign-in failed: ' + (Err.code || Err.message); RefreshAcct()}
+}
+function RenderAccount(){
+ Ui.className = 'On';
+ let Body;
+ if(!FbReady) Body = '<p class="Lead">Cloud save is not set up yet. Paste your Firebase web config into <b>FirebaseConfig</b> near the end of index.html, then reload.</p>';
+ else if(!Acct) Body = `<p class="Lead">Sign in with Google to create your account. Your first sign-in registers you automatically, and your best times, Workshop shards and runs follow you to every device.</p><button class="PlayBtn" style="font-size:20px;padding:10px 26px;min-height:48px;animation:none" data-act="signin">Sign in with Google</button>${CloudState ? '<div class="Note">' + HtmlEsc(CloudState) + '</div>' : ''}`;
+ else Body = `<div class="AcctCard">${Acct.photo ? '<img alt="" referrerpolicy="no-referrer" src="' + HtmlEsc(Acct.photo) + '">' : ''}<div><b>${HtmlEsc(Acct.name)}</b><div class="PSub">${HtmlEsc(Acct.email)}</div></div></div><div class="Note">${HtmlEsc(CloudState || 'Signed in')}</div><div class="Row" style="margin-top:12px"><button class="Btn" data-act="syncnow">Sync now</button><button class="Btn Alt" data-act="signout">Sign out</button></div>`;
+ Ui.innerHTML = `<div class="Box AcctScreen" style="max-width:560px"><h2>Account</h2><div class="Panel">${Body}</div><button class="Btn" style="margin-top:14px" data-act="back">Back</button></div>`;
+}
+function RefreshAcct(){if(Mode !== 'menu') return; if(Ui.querySelector('.AcctScreen')) RenderAccount(); else if(Ui.querySelector('.MenuWrap')) ShowMenu()}
+Ui.addEventListener('click', Ev => {
+ const B = Ev.target.closest('button'); if(!B) return; const A = B.dataset.act;
+ if(A === 'acct'){RenderAccount(); Ev.stopImmediatePropagation()}
+ else if(A === 'signin'){SignIn(); Ev.stopImmediatePropagation()}
+ else if(A === 'syncnow'){CloudPush(true); Ev.stopImmediatePropagation()}
+ else if(A === 'signout'){FbLoad().then(M => M.Au.signOut(M.auth)); Ev.stopImmediatePropagation()}
+}, true);
+const GameOverV8 = GameOver;
+GameOver = function(W){GameOverV8(W); setTimeout(() => CloudPush(true), 800)};
+document.addEventListener('visibilitychange', () => {if(document.hidden) CloudPush(false)});
+setInterval(() => CloudPush(false), 20000);
+if(FbReady) FbInit();
+
 /* ---------- attract mode: a live demo fights behind the menu ---------- */
 const Demo = {T: 0, Foes: [], Shots: [], Fx: [], Cd: 0, Spawn: 0, Aim: 0, Shot: 0, Kills: 0};
 const DemoBurst = (X, Y, Color, N, V) => {for(let I = 0; I < N && Demo.Fx.length < 220; I++){const A = RandRange(0, Tau), S = RandRange(.3, 1) * V; Demo.Fx.push({X, Y, Vx: Math.cos(A) * S, Vy: Math.sin(A) * S, L: .5, M: .5, C: Color, S: RandRange(1.5, 3)})}};
@@ -2528,111 +2615,7 @@ function DrawAttract(){
 
 /* menu gets a see-through layer so the demo shows behind it */
 const ShowMenuLive = ShowMenu;
-ShowMenu = function(){
- ShowMenuLive(); Ui.classList.add('Menu');
- if(!Ui.querySelector('.MenuWrap')) return;
- const Existing = Ui.querySelector('.CloudAccount'); if(Existing) Existing.remove();
- const Account = document.createElement('div'); Account.className = 'CloudAccount'; Account.innerHTML = CloudUser
-  ? `<b>${EscapeHtml(CloudUser.displayName || 'Google player')}</b><small>${EscapeHtml(CloudUser.email || '')}</small><button data-cloud="signout">Sign out</button><div class="CloudStatus">${EscapeHtml(CloudStatus)}</div>`
-  : `<b>Cloud saves</b><button data-cloud="signin" ${CloudBusy ? 'disabled' : ''}>${CloudBusy ? 'Connecting…' : 'Sign in with Google'}</button><div class="CloudStatus">${EscapeHtml(CloudStatus)}</div>`;
- Ui.querySelector('.MenuWrap').appendChild(Account);
- if(CloudLoading) Ui.querySelectorAll('[data-act=play],[data-act=continue]').forEach(Button => Button.disabled = true);
-};
-
-/* ---------- Firebase authentication + cloud saves ---------- */
-const FirebaseConfig = {
- apiKey: "AIzaSyDRqO7rllm7FRNRcmBvRasx3ZMrP-iTSnQ",
- authDomain: "geometrical-onslaught.firebaseapp.com",
- projectId: "geometrical-onslaught",
- storageBucket: "geometrical-onslaught.firebasestorage.app",
- messagingSenderId: "419394789184",
- appId: "1:419394789184:web:ca10e6127f844981b6e4a5",
- measurementId: "G-23V3CT9GGJ"
-};
-let FirebaseAuth = null, CloudDb = null, CloudUser = null, PreviousCloudUid = null, CloudBusy = false, CloudStatus = 'Sign in to sync your progress across devices.', CloudTimer = null, LastCloudWrite = 0, CloudLoading = false, CloudReady = false;
-const CloudHashes = {};
-const EscapeHtml = V => String(V).replace(/[&<>"']/g, C => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[C]));
-function SetCloudStatus(Text){CloudStatus = Text; const El = Ui.querySelector('.CloudStatus'); if(El) El.textContent = Text}
-function CloudPath(){return CloudDb.collection('Players').doc(CloudUser.uid).collection('Saves')}
-function ScheduleCloudSave(Immediate = false){
- if(!CloudUser || !CloudDb || CloudLoading) return;
- if(CloudTimer && !Immediate) return;
- clearTimeout(CloudTimer);
- const Wait = Immediate ? 500 : Math.max(15000 - (Date.now() - LastCloudWrite), 0);
- CloudTimer = setTimeout(() => {CloudTimer = null; UploadCloudData()}, Wait);
-}
-async function UploadCloudData(){
- if(!CloudUser || !CloudDb || CloudLoading) return;
- try{
-  const Batch = CloudPath(), Writes = [];
-  for(const K of Object.keys(Modes)){
-   const Save = SaveStore.Get(K); if(!Save) continue;
-   const Raw = JSON.stringify(Save); if(new Blob([Raw]).size > 900000){SetCloudStatus(K + ' save is too large for cloud storage; local backup remains available.'); continue}
-   const Hash = H53(Raw), Doc = Batch.doc(K);
-   if(CloudHashes[K] === Hash) continue;
-   Writes.push(Doc.set({Data: Save, SavedAt: Save.SavedAt || Date.now(), Hash}, {merge:true}).then(() => CloudHashes[K] = Hash));
-  }
-  const Profile = {Meta, Best, SavedAt: Date.now()}, ProfileHash = H53(JSON.stringify({Meta, Best}));
-  if(CloudHashes.Profile !== ProfileHash) Writes.push(Batch.doc('Profile').set({Data: Profile, SavedAt: Profile.SavedAt, Hash: ProfileHash}, {merge:true}).then(() => CloudHashes.Profile = ProfileHash));
-  if(Writes.length){await Promise.all(Writes); LastCloudWrite = Date.now(); SetCloudStatus('Cloud saves synced · ' + new Date().toLocaleTimeString())}
-  else SetCloudStatus('Cloud saves are up to date.');
- }catch(Err){console.error('Cloud save failed:', Err); SetCloudStatus('Cloud save failed. Your local progress is still saved.')}
-}
-async function LoadCloudData(){
- if(!CloudUser || !CloudDb) return;
- CloudLoading = true; CloudReady = false; SetCloudStatus('Loading your cloud saves…');
- try{
-  const Snap = await CloudPath().get();
-  for(const Doc of Snap.docs){
-   const Data = Doc.data()?.Data;
-   if(Doc.id === 'Profile' && Data){
-    if(Data.Meta && typeof Data.Meta.Shards === 'number'){Meta = {Shards: Data.Meta.Shards, Up: Data.Meta.Up || {}}; SaveMeta()}
-    if(Data.Best && typeof Data.Best === 'object'){Best = Data.Best; StorageSet('ShapeSwarmBest2', JSON.stringify(Best))}
-    CloudHashes.Profile = Doc.data().Hash || H53(JSON.stringify({Meta, Best}));
-   }else if(Object.prototype.hasOwnProperty.call(Modes, Doc.id) && ValidSave(Data)){
-    const Local = SaveStore.Get(Doc.id), RemoteTime = Number(Data.SavedAt) || 0, LocalTime = Number(Local?.SavedAt) || 0;
-    if(!Local || RemoteTime > LocalTime) SaveStore.Set(Doc.id, Data);
-    CloudHashes[Doc.id] = Doc.data().Hash || H53(JSON.stringify(Data));
-   }
-  }
-  CloudReady = true; SetCloudStatus('Cloud saves loaded · ' + (CloudUser.email || 'Google account'));
- }catch(Err){console.error('Cloud load failed:', Err); SetCloudStatus('Could not load cloud saves. Local saves are still available.'); CloudReady = true}
- finally{CloudLoading = false; ShowMenu(); ScheduleCloudSave()}
-}
-async function SignInGoogle(){
- if(!FirebaseAuth || CloudBusy) return;
- CloudBusy = true; SetCloudStatus('Opening Google sign-in…'); ShowMenu();
- try{const Provider = new firebase.auth.GoogleAuthProvider(); await FirebaseAuth.signInWithPopup(Provider)}
- catch(Err){
-  if(['auth/popup-blocked','auth/popup-closed-by-user','auth/cancelled-popup-request'].includes(Err.code)){
-   try{await FirebaseAuth.signInWithRedirect(new firebase.auth.GoogleAuthProvider())}catch(RedirectErr){console.error(RedirectErr); SetCloudStatus('Google sign-in failed: ' + RedirectErr.message)}
-  }else{console.error(Err); SetCloudStatus('Google sign-in failed: ' + (Err.message || Err.code))}
- }
- finally{CloudBusy = false; ShowMenu()}
-}
-async function SignOutGoogle(){if(!FirebaseAuth) return; try{await FirebaseAuth.signOut(); CloudUser = null; CloudReady = false; SetCloudStatus('Signed out. Local saves remain on this device.'); ShowMenu()}catch(Err){SetCloudStatus('Sign-out failed: ' + Err.message)}}
-Ui.addEventListener('click', Ev => {
- const Button = Ev.target.closest('[data-cloud]'); if(!Button) return;
- Ev.preventDefault(); Ev.stopImmediatePropagation();
- if(Button.dataset.cloud === 'signin') SignInGoogle();
- if(Button.dataset.cloud === 'signout') SignOutGoogle();
-}, true);
-const SaveRunLocal = SaveRun;
-SaveRun = function(){const Result = SaveRunLocal(); ScheduleCloudSave(); return Result};
-const FinishSaveLocal = FinishSave;
-FinishSave = function(){FinishSaveLocal(); ScheduleCloudSave(true)};
-try{
- if(!firebase.apps.length) firebase.initializeApp(FirebaseConfig);
- FirebaseAuth = firebase.auth(); CloudDb = firebase.firestore();
- FirebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(Err => console.warn('Auth persistence:', Err));
- FirebaseAuth.getRedirectResult().catch(Err => {if(Err.code !== 'auth/no-auth-event') console.warn('Google redirect:', Err)});
- FirebaseAuth.onAuthStateChanged(async User => {
-  if(PreviousCloudUid !== (User?.uid || null)){for(const K of Object.keys(CloudHashes)) delete CloudHashes[K]; LastCloudWrite = 0; PreviousCloudUid = User?.uid || null}
-  CloudUser = User;
-  if(User){await LoadCloudData()}
-  else{CloudReady = true; SetCloudStatus('Sign in to sync your progress across devices.'); ShowMenu()}
- });
-}catch(Err){console.error('Firebase initialization failed:', Err); CloudStatus = 'Firebase could not initialize. Check your web app configuration and network.'}
+ShowMenu = function(){ShowMenuLive(); Ui.classList.add('Menu')};
 
 for(const K of Object.keys(Modes)) SaveStore.Get(K);
 if(Tampered) MenuNote = 'A modified save was detected and reset.';
