@@ -582,6 +582,17 @@ p {
 .WGlyph { display:inline-grid; place-items:center; width:20px; margin-right:4px; }
 .EGlyph svg,.ElemIco { display:block; }
 .PChip { display:inline-flex; align-items:center; gap:5px; }
+#FpsBox { position:fixed; left:8px; bottom:calc(8px + env(safe-area-inset-bottom)); font:700 12px monospace; color:#4ff0d6; display:none; z-index:6; pointer-events:none; text-shadow:0 1px 3px #000; }
+#HurtFx { position:fixed; inset:0; pointer-events:none; z-index:3; }
+#HurtFx.On { animation:HurtFlash .4s ease-out; }
+@keyframes HurtFlash { 0% { box-shadow:inset 0 0 150px 40px rgba(255,60,90,.6); } 100% { box-shadow:inset 0 0 150px 40px rgba(255,60,90,0); } }
+.MenuWrap h1 { background-size:220% 100%; animation:Sheen 6s ease-in-out infinite alternate; }
+@keyframes Sheen { from { background-position:0% 50%; } to { background-position:100% 50%; } }
+.Card:nth-child(2) { animation-delay:.07s; }
+.Card:nth-child(3) { animation-delay:.14s; }
+.Card:nth-child(4) { animation-delay:.21s; }
+.Pick:active,.PlayBtn:active,.TabBtn:active { transform:scale(.96); }
+.Card.Pact { background:linear-gradient(160deg,rgba(58,28,92,.95),rgba(36,16,44,.95)); }
 </style>
 </head>
 
@@ -599,8 +610,9 @@ const Canvas = GetById('GameCanvas'), Context = Canvas.getContext('2d'), Ui = Ge
 const Arena = 2400, Tau = Math.PI * 2, PlayerRadius = 14, JoyRadius = 55;
 let Width, Height, Dpr, Zoom, SafeTop = 0, SafeBottom = 0;
 
+var RenderScale = 1, FpsGap = 0, FpsBox = null;
 function Resize(){
- Dpr = devicePixelRatio || 1;
+ Dpr = (devicePixelRatio || 1) * RenderScale;
  Width = innerWidth;
  Height = innerHeight;
  Canvas.width = Width * Dpr;
@@ -615,8 +627,27 @@ Resize();
 
 const Clamp = (V, Lo, Hi) => Math.max(Lo, Math.min(Hi, V)), Round2 = V => Math.round(V * 100) / 100, RandRange = (Lo, Hi) => Lo + Math.random() * (Hi - Lo);
 const Shuffle = A => A.slice().sort(() => Math.random() - .5);
-function StorageGet(Key){try{return localStorage.getItem(Key)}catch(Err){return null}}
-function StorageSet(Key, V){try{localStorage.setItem(Key, V)}catch(Err){}}
+var Tampered = 0;
+const SealSalt = 'ss/4.7·k9x';
+const H53 = (Str, Seed = 0) => {let H1 = 0xdeadbeef ^ Seed, H2 = 0x41c6ce57 ^ Seed; for(let I = 0; I < Str.length; I++){const C = Str.charCodeAt(I); H1 = Math.imul(H1 ^ C, 2654435761); H2 = Math.imul(H2 ^ C, 1597334677)} H1 = Math.imul(H1 ^ (H1 >>> 16), 2246822507) ^ Math.imul(H2 ^ (H2 >>> 13), 3266489909); H2 = Math.imul(H2 ^ (H2 >>> 16), 2246822507) ^ Math.imul(H1 ^ (H1 >>> 13), 3266489909); return (4294967296 * (2097151 & H2) + (H1 >>> 0)).toString(36)};
+function Seal(Key, V){
+ const U = unescape(encodeURIComponent(V)), K = H53(SealSalt + Key); let Out = '';
+ for(let I = 0; I < U.length; I++) Out += String.fromCharCode(U.charCodeAt(I) ^ K.charCodeAt(I % K.length) ^ ((I * 7) & 127));
+ const B = btoa(Out); return 'v2.' + B + '.' + H53(SealSalt + Key + B, 7);
+}
+function Unseal(Key, Raw){
+ if(Raw.slice(0, 3) !== 'v2.'){
+  if(localStorage.getItem('ShapeSwarmSealed') === null){try{localStorage.setItem(Key, Seal(Key, Raw))}catch(Err){} return Raw}
+  Tampered++; localStorage.removeItem(Key); return null;
+ }
+ const P = Raw.split('.');
+ if(P.length === 3 && P[2] === H53(SealSalt + Key + P[1], 7)){
+  try{const D = atob(P[1]), K = H53(SealSalt + Key); let Out = ''; for(let I = 0; I < D.length; I++) Out += String.fromCharCode(D.charCodeAt(I) ^ K.charCodeAt(I % K.length) ^ ((I * 7) & 127)); return decodeURIComponent(escape(Out))}catch(Err){}
+ }
+ Tampered++; localStorage.removeItem(Key); return null;
+}
+function StorageGet(Key){try{const Raw = localStorage.getItem(Key); return Raw === null ? null : Unseal(Key, Raw)}catch(Err){return null}}
+function StorageSet(Key, V){try{localStorage.setItem(Key, Seal(Key, String(V)))}catch(Err){}}
 let Best = {};
 try{Best = JSON.parse(StorageGet('ShapeSwarmBest2') || '{}') || {}}catch(Err){Best = {}}
 
@@ -669,10 +700,10 @@ addEventListener('pointerdown', InitAudio, {once:true});
 /* ---------- data ---------- */
 const ElemNames = ['Fire', 'Water', 'Earth', 'Wind'];
 const Elems = {
- Fire: {Glyph: '▲', Color: '#ff7a3d', Desc: 'Burns enemies over time. +8% damage per level.'},
- Water: {Glyph: '●', Color: '#4fb4ff', Desc: 'Slows enemies. +6% fire rate per level.'},
- Earth: {Glyph: '■', Color: '#c9a066', Desc: 'Heavy bolts that knock back and stun. +1.5 defense per level.'},
- Wind: {Glyph: '◆', Color: '#8ff5d2', Desc: 'Fast piercing bolts. +4% move speed per level.'}
+ Fire: {Glyph: '▲', Color: '#ff7a3d', Desc: 'Burns enemies over time. +8% damage per level. Lv3 Ember Burst: burning enemies explode on death.'},
+ Water: {Glyph: '●', Color: '#4fb4ff', Desc: 'Slows enemies. +6% fire rate per level. Lv3 Deep Freeze: every 6th hit freezes a target.'},
+ Earth: {Glyph: '■', Color: '#c9a066', Desc: 'Heavy bolts that knock back and stun. +1.5 defense per level. Lv3 Shatter: stunned enemies take +80% damage.'},
+ Wind: {Glyph: '◆', Color: '#8ff5d2', Desc: 'Fast piercing bolts. +4% move speed per level. Lv3 Chain Gust: hits arc to a nearby enemy.'}
 };
 
 const Modes = {
@@ -1123,15 +1154,15 @@ function ShowMenu(){
  }).join('');
  const ElemCards = ElemNames.map(N => {
   const E = Elems[N], Parts = E.Desc.split('. ');
-  return `<button class="Pick ElemCard ${N === SelElem ? 'Sel' : ''}" style="--Chip:${E.Color}" data-elem="${N}"><span class="EGlyph">${ElemIcon(N, 22)}</span><span class="EText"><b class="PName">${N}</b><span class="PSub">${Parts[0]}</span><span class="PPerk">${(Parts[1] || '').replace(/\.$/, '')}</span></span></button>`;
+  return `<button class="Pick ElemCard ${N === SelElem ? 'Sel' : ''}" style="--Chip:${E.Color}" data-elem="${N}"><span class="EGlyph">${ElemIcon(N, 22)}</span><span class="EText"><b class="PName">${N}</b><span class="PSub">${Parts[0]}</span><span class="PPerk">${(Parts[1] || '').replace(/\.$/, '')}</span><span class="PSub" style="color:#c9d0ff">${Parts[2] || ''}</span></span></button>`;
  }).join('');
  const Glyphs = ElemNames.map(N => `<span>${ElemIcon(N, 22)}</span>`).join('');
  const Hints = InputMode === 'touch'
   ? '<span class="Hint"><kbd>Left stick</kbd>move</span><span class="Hint"><kbd>Right stick</kbd>aim + fire</span><span class="Hint"><kbd>Button</kbd>auto-aim</span>'
   : '<span class="Hint"><kbd>WASD</kbd>move</span><span class="Hint"><kbd>Mouse</kbd>aim</span><span class="Hint"><kbd>Click</kbd>or<kbd style="margin-left:4px">Space</kbd>fire</span><span class="Hint"><kbd>Shift</kbd>dash</span><span class="Hint"><kbd>E</kbd>nova</span><span class="Hint"><kbd>Q</kbd>auto-aim</span><span class="Hint"><kbd>P</kbd>pause</span><span class="Hint"><kbd>Enter</kbd>play</span>';
 const WS = Workshop.map(W => {const L = Meta.Up[W.Key] || 0, C = WorkshopCost(L, W), Mx = W.Max || 5, Max = L >= Mx, Can = !Max && Meta.Shards >= C;
-  return `<button class="Pick WsCard ${Can ? '' : 'Dim'}" style="--Chip:#ffc857" data-up="${W.Key}"><span class="PName"><span class="WGlyph">${W.Glyph}</span>${W.Name}</span><span class="PSub">${W.Perk}</span><span class="PBest">${'●'.repeat(L)}${'○'.repeat(Mx - L)}</span><span class="WsCost">${Max ? 'MAX' : '◆ ' + C}</span></button>`}).join('');
- const MutDef = {Glass: ['Glass Cannon', '½ HP, +60% damage'], Heavy: ['Heavy Core', '-25% speed, +35% damage'], Frenzy: ['Frenzy', '+50% fire rate, -25% HP'], Swarm: ['Swarm', '+25% enemy pressure'], Fast: ['Fast Foes', '+25% enemy speed'], Armored: ['Armored', 'Foes +40% HP, you +30% XP'], Volatile: ['Volatile', 'Foes explode when they die'], Elite: ['Elite Rush', 'An elite arrives every 25s'], Blood: ['Blood Pact', 'HP drains, kills heal you'], NoRegen: ['No Regen', 'Health never regenerates']};
+  return `<button class="Pick WsCard ${Can ? '' : 'Dim'}" title="${W.Perk} (per level, max ${Mx})" style="--Chip:#ffc857" data-up="${W.Key}"><span class="PName"><span class="WGlyph">${W.Glyph}</span>${W.Name}</span><span class="PSub">${W.Perk}</span><span class="PBest">${'●'.repeat(L)}${'○'.repeat(Mx - L)}</span><span class="WsCost">${Max ? 'MAX' : '◆ ' + C}</span></button>`}).join('');
+ const MutDef = {Glass: ['Glass Cannon', 'Half max HP, +60% damage'], Heavy: ['Heavy Core', '-25% move speed, +35% damage'], Frenzy: ['Frenzy', '+50% fire rate, -25% max HP'], Swarm: ['Swarm', 'Waves grow 25% harder'], Fast: ['Fast Foes', 'Enemies move 25% faster'], Armored: ['Armored', 'Enemies +40% HP, you gain +30% XP'], Volatile: ['Volatile', 'Dying enemies blast you within 90px'], Elite: ['Elite Rush', 'A tough elite spawns every 25s'], Blood: ['Blood Pact', 'Drain 1.5% HP/s (cancels regen), heal 1.2% per kill'], NoRegen: ['No Regen', 'All health regeneration disabled']};
  const MutChips = Object.keys(MutDef).map(K => `<button class="Pick ${Mut[K] ? 'Sel' : ''}" style="--Chip:#ff5d73" data-mut="${K}"><span class="PName">${MutDef[K][0]}</span><span class="PSub">${MutDef[K][1]}</span></button>`).join('');
  const Bst = Best[SelMode] ? ' · best <b>' + FormatTime(Best[SelMode]) + '</b>' : '';
  Ui.innerHTML = `<div class="MenuWrap ${Fresh ? 'Enter' : ''}">
@@ -1166,10 +1197,10 @@ let SaveWarned = false, MenuNote = '', HordeT = 60, LastObjType = null;
    (a cloud version is async, so the callers below would need await). */
 const SaveStore = {
   Get(ModeName){
-    try{const Raw = localStorage.getItem(SaveKeyPrefix + ModeName); return Raw ? JSON.parse(Raw) : null}catch(Err){return null}
+    try{const Raw = StorageGet(SaveKeyPrefix + ModeName); return Raw ? JSON.parse(Raw) : null}catch(Err){return null}
   },
   Set(ModeName, Data){
-    try{localStorage.setItem(SaveKeyPrefix + ModeName, JSON.stringify(Data)); return true}catch(Err){return false}
+    try{StorageSet(SaveKeyPrefix + ModeName, JSON.stringify(Data)); return true}catch(Err){return false}
   }
 };
 
@@ -1227,7 +1258,7 @@ function ExportSaves(){
   const Data = {Game: 'ShapeSwarm', V: SaveVersion, ExportedAt: new Date().toISOString(), Best, Saves: {}};
   for(const K of Object.keys(Modes)){const S = SaveStore.Get(K); if(S) Data.Saves[K] = S}
   try{
-    const File = new Blob([JSON.stringify(Data)], {type: 'application/json'}), Link = document.createElement('a');
+    const File = new Blob([JSON.stringify(Object.assign(Data, {Sig: H53(SealSalt + JSON.stringify([Data.Best, Data.Saves]), 3)}))], {type: 'application/json'}), Link = document.createElement('a');
     Link.href = URL.createObjectURL(File);
     Link.download = 'shape-swarm-saves-' + new Date().toISOString().slice(0, 10) + '.json';
     document.body.appendChild(Link); Link.click(); Link.remove();
@@ -1250,6 +1281,7 @@ function ImportSaves(){
       if(!Data || Data.Game !== 'ShapeSwarm' || !Data.Saves || typeof Data.Saves !== 'object'){
         MenuNote = 'Import failed: not a Shape Swarm save file.'; ShowMenu(); return;
       }
+      if(Data.Sig !== H53(SealSalt + JSON.stringify([Data.Best, Data.Saves]), 3)){MenuNote = 'Import failed: this file was edited or was not exported by this game.'; ShowMenu(); return}
       let Count = 0;
       for(const K of Object.keys(Modes)){
         const S = Data.Saves[K];
@@ -1804,7 +1836,10 @@ function Draw(){
   if(En.Shield > 0){Context.strokeStyle = '#4fb4ff'; Context.lineWidth = 2; Context.globalAlpha = .4 + .6 * En.Shield / En.MaxHp; Poly(En.X, En.Y, En.Radius + 4, 0); Context.stroke(); Context.globalAlpha = 1}
   if(En.Trait === 'healer'){Context.strokeStyle = '#4ade80'; Context.lineWidth = 3; Context.beginPath(); Context.moveTo(En.X - 5, En.Y); Context.lineTo(En.X + 5, En.Y); Context.moveTo(En.X, En.Y - 5); Context.lineTo(En.X, En.Y + 5); Context.stroke()}
   if(En.Tele > 0){Context.globalAlpha = .6; Context.strokeStyle = '#ff5d73'; Context.lineWidth = 2; Context.setLineDash([6, 6]); Context.beginPath(); Context.moveTo(En.X, En.Y); Context.lineTo(Player.X, Player.Y); Context.stroke(); Context.setLineDash([]); Context.globalAlpha = 1}
-  if(En.Boss){Context.fillStyle = En.Color; Context.font = '700 14px "Chakra Petch",sans-serif'; Context.textAlign = 'center'; Context.fillText(En.Boss, En.X, En.Y - En.Radius - 16)}
+  if(En.Boss){Context.fillStyle = En.Color; Context.font = '700 14px "Chakra Petch",sans-serif'; Context.textAlign = 'center'; Context.fillText(En.Boss, En.X, En.Y - En.Radius - 16);
+   if(En.Cast){Context.fillStyle = '#ff5d73'; Context.fillText(En.Cast, En.X, En.Y - En.Radius - 32)}
+   if(En.SlamT > 0){Context.strokeStyle = '#ff5d73'; Context.lineWidth = 3; Context.globalAlpha = .7; Poly(En.X, En.Y, 110, 0); Context.stroke(); Context.globalAlpha = .25; Context.fillStyle = '#ff5d73'; Context.beginPath(); Context.arc(En.X, En.Y, 110 * (1 - En.SlamT / .9), 0, Tau); Context.fill(); Context.globalAlpha = 1}
+  }
  }
  for(const Eb of EnemyBolts){
   Context.globalAlpha = .5; Context.strokeStyle = '#ff8fd0'; Context.lineWidth = 2; Context.beginPath(); Context.moveTo(Eb.X - Eb.Vx * .04, Eb.Y - Eb.Vy * .04); Context.lineTo(Eb.X, Eb.Y); Context.stroke();
@@ -1882,6 +1917,8 @@ function DrawHud(){
  Context.fillStyle = '#ffffff22'; Context.fillRect(16, BarY + 68, 64, 4);
  Context.fillStyle = Nc > 0 ? '#8f98c8' : '#ffc857'; Context.fillRect(16, BarY + 68, 64 * (1 - Nc / NovaMax()), 4);
  if(InputMode === 'key'){Context.fillStyle = '#8f98c8'; Context.font = '700 11px "Chakra Petch",sans-serif'; Context.fillText(Nc > 0 ? 'Nova ' + Math.ceil(Nc) + 's' : 'Nova ready · E', 88, BarY + 73)}
+ const MsK = Object.keys(RM()).filter(K => RM()[K]);
+ if(MsK.length){Context.fillStyle = '#ff9bab'; Context.font = '700 11px "Chakra Petch",sans-serif'; Context.fillText('Mutators: ' + MsK.join(', '), 16, BarY + 92)}
 
  /* time */
  const Cfg = Modes[ModeKey];
@@ -1958,7 +1995,7 @@ function Loop(Stamp){
  const Dt = Math.min(.05, (Stamp - LastTime) / 1000 || 0); LastTime = Stamp;
  const Blocked = InputMode === 'touch' && Height > Width;
  if(Player){
-  UpdateFx(Dt); HitStop -= Dt; PerfAvg = PerfAvg * .96 + Dt * .04; ParticleCap = Settings.Reduce ? 90 : PerfAvg > .026 ? 140 : 350;
+  UpdateFx(Dt); HitStop -= Dt; PerfAvg = PerfAvg * .96 + Dt * .04; ParticleCap = Settings.Reduce ? 90 : PerfAvg > .026 ? 140 : [120, 220, 350][Settings.Quality ?? 2];
   if(Mode === 'play' && !Blocked && HitStop <= 0){Update(Dt); BoltFx(Dt); TraitTick(Dt)}
  }else AttractUpdate(Dt);
  Draw();
@@ -1971,7 +2008,7 @@ try{const M = JSON.parse(StorageGet('ShapeSwarmMeta') || 'null'); if(M && typeof
 const SaveMeta = () => StorageSet('ShapeSwarmMeta', JSON.stringify(Meta));
 const Workshop = [
  {Key: 'Vigor', Name: 'Vigor', Perk: '+10 max HP', Glyph: '✚', Mult: 1},
- {Key: 'Might', Name: 'Might', Perk: '+2 damage', Glyph: '●', Mult: 1.2},
+ {Key: 'Might', Name: 'Might', Perk: '+1 damage', Glyph: '●', Mult: 1.2},
  {Key: 'Haste', Name: 'Haste', Perk: '+5% fire rate', Glyph: '▲', Mult: 1.5},
  {Key: 'Plate', Name: 'Plating', Perk: '+1 defense', Glyph: '▣', Mult: 1},
  {Key: 'Thrust', Name: 'Thrusters', Perk: '+4% move speed', Glyph: '▶', Mult: 1},
@@ -1982,7 +2019,12 @@ const Workshop = [
  {Key: 'Quick', Name: 'Quickstep', Perk: '-0.15s dash cooldown', Glyph: '»', Mult: 1},
  {Key: 'NovaC', Name: 'Nova Core', Perk: '-1.5s nova cooldown', Glyph: '✱', Mult: 1.2},
  {Key: 'Spare', Name: 'Reroll', Perk: '+1 reroll', Glyph: '↻', Mult: 1.5, Max: 3},
- {Key: 'Head', Name: 'Head Start', Perk: '+1 upgrade at start', Glyph: '⬆', Mult: 2, Max: 3}
+ {Key: 'Head', Name: 'Head Start', Perk: '+1 free upgrade pick at run start', Glyph: '⬆', Mult: 2, Max: 3},
+ {Key: 'Regen', Name: 'Regeneration', Perk: '+0.25 HP regenerated per second', Glyph: '♥', Mult: 1.2},
+ {Key: 'Dodge', Name: 'Evasion', Perk: '+1.5% chance to dodge hits', Glyph: '≋', Mult: 1.4},
+ {Key: 'Blast', Name: 'Blast Core', Perk: '+8 blast and nova radius', Glyph: '✺', Mult: 1},
+ {Key: 'Banker', Name: 'Banker', Perk: '+5% shards from every run', Glyph: '$', Mult: 1.3},
+ {Key: 'Prime', Name: 'Prime', Perk: '+1 level in your starting element', Glyph: '◈', Mult: 2.2, Max: 3}
 ];
 const WorkshopCost = (L, W) => Math.round(([15, 30, 50, 80, 120][L] ?? 0) * (W.Mult || 1));
 
@@ -1990,12 +2032,12 @@ const NewRunV3 = NewRun;
 NewRun = function(){
  NewRunV3();
  const U = Meta.Up; Stats.MaximumHealth += 10 * (U.Vigor || 0); Player.Hp = Stats.MaximumHealth;
- FillStats(); EliteT = 20; Stats.Damage += 2 * (U.Might || 0); Stats.Defense += (U.Plate || 0); Stats.MovementSpeed *= 1 + .04 * (U.Thrust || 0); Stats.PickupRange += 20 * (U.Magnet || 0); Stats.ExperienceBonus += .06 * (U.Scholar || 0); Stats.Luck += .04 * (U.Fortune || 0); Stats.Lifesteal += .005 * (U.Leech || 0); Pending += (U.Head || 0); Stats.FireRate *= 1 + .05 * (U.Haste || 0); Rerolls += (U.Spare || 0);
- if(Mut.Glass){Stats.MaximumHealth = Math.round(Stats.MaximumHealth * .5); Player.Hp = Stats.MaximumHealth; Stats.Damage *= 1.6}
- if(Mut.NoRegen) Stats.Regeneration = 0;
- if(Mut.Heavy){Stats.MovementSpeed *= .75; Stats.Damage *= 1.35}
- if(Mut.Frenzy){Stats.FireRate *= 1.5; Stats.MaximumHealth = Math.round(Stats.MaximumHealth * .75); Player.Hp = Math.min(Player.Hp, Stats.MaximumHealth)}
- if(Mut.Armored) Stats.ExperienceBonus += .3;
+ Player.Mut = Object.assign({}, Mut); FillStats(); EliteT = 20; Stats.Damage += (U.Might || 0); Stats.Regeneration += .25 * (U.Regen || 0); Stats.Evasion += .015 * (U.Dodge || 0); Stats.BlastRadius += 8 * (U.Blast || 0); Elem[SelElem] += (U.Prime || 0); Stats.Defense += (U.Plate || 0); Stats.MovementSpeed *= 1 + .04 * (U.Thrust || 0); Stats.PickupRange += 20 * (U.Magnet || 0); Stats.ExperienceBonus += .06 * (U.Scholar || 0); Stats.Luck += .04 * (U.Fortune || 0); Stats.Lifesteal += .005 * (U.Leech || 0); Pending += (U.Head || 0); Stats.FireRate *= 1 + .05 * (U.Haste || 0); Rerolls += (U.Spare || 0);
+ if(RM().Glass){Stats.MaximumHealth = Math.round(Stats.MaximumHealth * .5); Player.Hp = Stats.MaximumHealth; Stats.Damage *= 1.6}
+ if(RM().NoRegen) Stats.Regeneration = 0;
+ if(RM().Heavy){Stats.MovementSpeed *= .75; Stats.Damage *= 1.35}
+ if(RM().Frenzy){Stats.FireRate *= 1.5; Stats.MaximumHealth = Math.round(Stats.MaximumHealth * .75); Player.Hp = Math.min(Player.Hp, Stats.MaximumHealth)}
+ if(RM().Armored) Stats.ExperienceBonus += .3;
 };
 
 function Dash(){
@@ -2011,14 +2053,14 @@ function Dash(){
 
 const KillEnemyV3 = KillEnemy;
 KillEnemy = function(En){KillEnemyV3(En);
- if(Mut.Volatile){Ring(En.X, En.Y, '#ff8fd0', 90, .3); if(Math.hypot(En.X - Player.X, En.Y - Player.Y) < 90 + En.Radius) HurtPlayer(8)}
- if(Mut.Blood) Player.Hp = Math.min(Stats.MaximumHealth, Player.Hp + Stats.MaximumHealth * .012);
+ if(RM().Volatile){Ring(En.X, En.Y, '#ff8fd0', 90, .3); if(Math.hypot(En.X - Player.X, En.Y - Player.Y) < 90 + En.Radius) HurtPlayer(8)}
+ if(RM().Blood) Player.Hp = Math.min(Stats.MaximumHealth, Player.Hp + Stats.MaximumHealth * .012);
  if(En.Kind === 4 || En.Elite){HitStop = .12; Shake = Math.max(Shake, 14)}};
 
 const GameOverV3 = GameOver;
 GameOver = function(Won){
  const Prev = Best[ModeKey] || 0, Score = Math.floor(RunStats.Time);
- LastGain = Math.max(1, Math.round((RunStats.Kills / 8 + Round * 4 + RunStats.Time / 30 + (Won ? 25 : 0)) * (1 + .2 * Object.values(Mut).filter(Boolean).length)));
+ LastGain = Math.max(1, Math.round((RunStats.Kills / 8 + Round * 4 + RunStats.Time / 30 + (Won ? 25 : 0)) * (1 + .2 * Object.values(RM()).filter(Boolean).length) * (1 + .05 * (Meta.Up.Banker || 0))));
  Meta.Shards += LastGain; SaveMeta();
  const Mk = ModeKey, Rd = Round, Lv = Player.Level, Kl = RunStats.Kills, Tm = FormatTime(RunStats.Time), El = SelElem;
  GameOverV3(Won);
@@ -2044,7 +2086,7 @@ Ui.addEventListener('click', Ev => {
 }, true);
 
 /* ---------- v4: settings, music, mutators, synergies, nova, traits, bosses, pause, palette ---------- */
-const Settings = Object.assign({Master: .8, Music: .5, Sfx: 1, Shake: true, Reduce: matchMedia('(prefers-reduced-motion: reduce)').matches, Cb: false, Lefty: false}, (() => {try{return JSON.parse(StorageGet('ShapeSwarmSettings') || '{}') || {}}catch(Err){return {}}})());
+const Settings = Object.assign({Master: .8, Music: .5, Sfx: 1, Shake: true, Reduce: matchMedia('(prefers-reduced-motion: reduce)').matches, Cb: false, Lefty: false, Quality: 2, Scale: 1, Fps: 0, ShowFps: false, Dmg: true, Flash: true, Bg: false}, (() => {try{return JSON.parse(StorageGet('ShapeSwarmSettings') || '{}') || {}}catch(Err){return {}}})());
 let Mut = Object.assign({Glass: false, Swarm: false, Fast: false, NoRegen: false}, (() => {try{return JSON.parse(StorageGet('ShapeSwarmMut') || '{}') || {}}catch(Err){return {}}})());
 let MusicStep = 0, MusicNext = 0;
 const CbElem = {Fire: '#D55E00', Water: '#56B4E9', Earth: '#F0E442', Wind: '#009E73'}, CbEnemy = ['#CC79A7', '#F0E442', '#0072B2', '#E69F00', '#D55E00'];
@@ -2053,6 +2095,7 @@ const BoltSides = E => Settings.Cb ? {Fire: 3, Water: 0, Earth: 4, Wind: 6}[E] :
 function ApplySettings(){
  SfxVol = Settings.Sfx * Settings.Master; ShakeOn = Settings.Shake && !Settings.Reduce;
  document.body.classList.toggle('Reduce', !!Settings.Reduce);
+ RenderScale = Clamp(Settings.Scale || 1, .5, 1); FpsGap = Settings.Fps ? 1000 / Settings.Fps - 1 : 0; if(FpsBox) FpsBox.style.display = Settings.ShowFps ? 'block' : 'none'; Resize();
  ElemNames.forEach(N => {Elems[N].Color = Settings.Cb ? CbElem[N] : OrigElem[N]});
  EnemyTypes.forEach((T, I) => {T.Color = Settings.Cb ? CbEnemy[I] : OrigEnemy[I]});
  StorageSet('ShapeSwarmSettings', JSON.stringify(Settings));
@@ -2084,6 +2127,7 @@ setInterval(MusicTick, 200);
 
 /* bolt trails per element */
 function BoltFx(Dt){
+ if(Settings.Quality < 1) return;
  for(const Bt of Bolts){
   if(Particles.length >= ParticleCap || Math.random() > Dt * 45) continue;
   const C = Elems[Bt.Elem].Color, P = {X: Bt.X, Y: Bt.Y, Vx: RandRange(-25, 25), Vy: RandRange(-25, 25), Life: .35, MaxLife: .35, Color: C, Size: 2};
@@ -2125,7 +2169,7 @@ function Nova(){
   if(Top === 'Earth') En.StunT = 1.2;
  }
 }
-function TouchBtns(){const Y = Height - SafeBottom - 72; return [['Dash', Width / 2 - 44, Y, Player ? Player.DashCd || 0 : 0], ['Nova', Width / 2 + 44, Y, Player ? Player.NovaCd || 0 : 0]]}
+function TouchBtns(){const S = Settings.Lefty ? -1 : 1, JX = Width * (Settings.Lefty ? .17 : .83), JY = Height - SafeBottom - 90; return [['Dash', JX - S * 90, JY + 22, Player ? Player.DashCd || 0 : 0], ['Nova', JX - S * 50, JY - 84, Player ? Player.NovaCd || 0 : 0]]}
 function DrawTouchBtns(){
  for(const [N, X, Y, Cd] of TouchBtns()){
   Context.globalAlpha = .8; Context.fillStyle = Cd > 0 ? '#151a36' : '#4ff0d6'; Context.strokeStyle = '#e8ecff'; Context.lineWidth = 2;
@@ -2156,12 +2200,13 @@ SpawnEnemy = function(Kind, Elite){
   else if(R < .17) En.Trait = 'charger';
   else if(R < .22 && Round >= 5) En.Trait = 'healer';
  }
- if(Mut.Fast) En.Speed *= 1.25;
- if(Mut.Armored){En.Hp *= 1.4; En.MaxHp *= 1.4}
+ if(RM().Fast) En.Speed *= 1.25;
+ if(Stats.EnemySpeed) En.Speed *= 1 + Stats.EnemySpeed;
+ if(RM().Armored){En.Hp *= 1.4; En.MaxHp *= 1.4}
 };
 function TraitTick(Dt){
- if(Mut.Blood && Player.Hp > 1) Player.Hp = Math.max(1, Player.Hp - Dt * Stats.MaximumHealth * .01);
- if(Mut.Elite){EliteT -= Dt; if(EliteT <= 0){EliteT = 25; SpawnEnemy(2, true)}}
+ if(RM().Blood) Player.Hp = Math.max(1, Player.Hp - Dt * (Stats.MaximumHealth * .015 + Stats.Regeneration));
+ if(RM().Elite){EliteT -= Dt; if(EliteT <= 0){EliteT = 25; SpawnEnemy(2, true)}}
  for(const En of Enemies){
   if(En.SpawnLeft > 0 || En.Hp <= 0) continue;
   if(En.Trait === 'charger'){
@@ -2177,19 +2222,19 @@ function TraitTick(Dt){
     En.TT = 1; Ring(En.X, En.Y, '#4ade80', 140, .5);
     for(const O of Enemies) if(O !== En && O.Hp > 0 && O.Hp < O.MaxHp && Math.hypot(O.X - En.X, O.Y - En.Y) < 140){O.Hp = Math.min(O.MaxHp, O.Hp + O.MaxHp * .06); FloatText(O.X, O.Y - O.Radius, '+', '#4ade80')}
    }
-  }else if(En.Boss === 'Summoner'){
+  }else if(false){
    En.TT = (En.TT ?? 4) - Dt;
    if(En.TT <= 0 && Enemies.length < 120){
     En.TT = 5.5; Ring(En.X, En.Y, En.Color, 120, .5);
     for(let I = 0; I < 3; I++){SpawnEnemy(1); const M = Enemies[Enemies.length - 1]; M.X = Clamp(En.X + RandRange(-70, 70), 20, Arena - 20); M.Y = Clamp(En.Y + RandRange(-70, 70), 20, Arena - 20); M.SpawnLeft = M.SpawnTotal = .4}
    }
-  }else if(En.Boss === 'Spinner'){
+  }else if(false){
    En.SpinA = (En.SpinA || 0) + Dt * 1.8; En.SW = (En.SW ?? 0) - Dt;
    if(En.SW <= 0){En.SW = .14; EnemyShot(En, En.SpinA * 3)}
   }
  }
 }
-if(typeof UpdateDifficulty === 'function'){const UpdateDifficultyV4 = UpdateDifficulty; UpdateDifficulty = function(){UpdateDifficultyV4(); if(Mut.Swarm) Diff *= 1.25}}
+if(typeof UpdateDifficulty === 'function'){const UpdateDifficultyV4 = UpdateDifficulty; UpdateDifficulty = function(){UpdateDifficultyV4(); Diff *= .9; if(RM().Swarm) Diff *= 1.25}}
 
 /* pause + settings screens */
 function RenderPause(){
@@ -2199,12 +2244,6 @@ function RenderPause(){
 }
 const PauseV4 = Pause;
 Pause = function(){PauseV4(); if(Mode === 'pause') RenderPause()};
-function RenderSettings(){
- const Sl = (K, L) => `<label class="SetRow"><span>${L}</span><input type="range" min="0" max="100" value="${Math.round(Settings[K] * 100)}" data-set="${K}"></label>`;
- const Tg = (K, L) => `<button class="Pick SetTog ${Settings[K] ? 'Sel' : ''}" data-tog="${K}"><span class="PName">${L}</span><span class="PSub">${Settings[K] ? 'On' : 'Off'}</span></button>`;
- Ui.className = 'On';
- Ui.innerHTML = `<div class="Box"><h2>Settings</h2><div class="Panel">${Sl('Master', 'Master volume')}${Sl('Music', 'Music')}${Sl('Sfx', 'Sound effects')}</div><div class="PGrid2" style="margin:10px 0 14px">${Tg('Shake', 'Screen shake')}${Tg('Reduce', 'Reduced motion')}${Tg('Cb', 'Colorblind palette')}${Tg('Lefty', 'Left-handed touch')}</div><button class="Btn" data-act="back">Back</button></div>`;
-}
 Ui.addEventListener('input', Ev => {const K = Ev.target.dataset && Ev.target.dataset.set; if(K){Settings[K] = Ev.target.value / 100; ApplySettings()}});
 Ui.addEventListener('change', Ev => {if(Ev.target.dataset && Ev.target.dataset.set) PlaySfx('Pickup')});
 Ui.addEventListener('click', Ev => {
@@ -2220,6 +2259,7 @@ Ui.addEventListener('click', Ev => {
 
 /* ---------- v5: icons, items, fullscreen, tabs ---------- */
 let MenuTab = 'run', EliteT = 20;
+const RM = () => (Player && Player.Mut) || {};
 const ElemSides = {Fire: 3, Water: 0, Earth: 4, Wind: 4}, ElemRot = {Fire: 0, Water: 0, Earth: Math.PI / 4, Wind: 0};
 function ElemIcon(N, Px){
  const P = {Fire: '<polygon points="12,3 21.5,19.5 2.5,19.5"/>', Water: '<circle cx="12" cy="12" r="9"/>', Earth: '<rect x="4" y="4" width="16" height="16" rx="2.5"/>', Wind: '<polygon points="12,2 22,12 12,22 2,12"/>'}[N];
@@ -2228,7 +2268,7 @@ function ElemIcon(N, Px){
 const GearBtn = () => ({X: Width - 138 - 44, Y: SafeTop + 48, W: 36, H: 32});
 const DashMax = () => (1.6 - .15 * (Meta.Up.Quick || 0)) * (1 - Math.min(.5, (Stats && Stats.DashHaste) || 0));
 const NovaMax = () => 14 - 1.5 * (Meta.Up.NovaC || 0);
-function FillStats(){if(!Stats) return; for(const K of ['DamageMult', 'Execute', 'DashHaste', 'NovaPower', 'OrbHeal']) if(typeof Stats[K] !== 'number') Stats[K] = 0}
+function FillStats(){if(!Stats) return; for(const K of ['DamageMult', 'Execute', 'DashHaste', 'NovaPower', 'OrbHeal', 'EnemySpeed']) if(typeof Stats[K] !== 'number') Stats[K] = 0}
 Items.push(
  Item('Overdrive', '✹', 'DamageMult', .08, {IsPct: 1, Unit: 'Damage Bonus'}),
  Item('Executioner', '✖', 'Execute', .12, {IsPct: 1, Unit: 'Execute Bonus'}),
@@ -2260,6 +2300,155 @@ addEventListener('orientationchange', () => setTimeout(TryFullscreen, 300));
 addEventListener('click', TryFullscreen, true);
 addEventListener('touchend', TryFullscreen, true);
 TryFullscreen();
+
+/* ---------- v6: graphics/settings, fps cap, background play, projectile clash, element abilities, fx ---------- */
+FpsBox = document.createElement('div'); FpsBox.id = 'FpsBox'; document.body.appendChild(FpsBox);
+const FlashEl = document.createElement('div'); FlashEl.id = 'HurtFx'; document.body.appendChild(FlashEl);
+let LastFrameT = 0, FpsCount = 0, FpsAt = 0;
+const LoopV6 = Loop;
+Loop = function(T){
+ if(FpsGap && T - LastFrameT < FpsGap){requestAnimationFrame(Loop); return}
+ LastFrameT = T; FpsCount++;
+ if(T - FpsAt > 500){if(Settings.ShowFps) FpsBox.textContent = Math.round(FpsCount * 1000 / (T - FpsAt)) + ' FPS'; FpsAt = T; FpsCount = 0}
+ LoopV6(T);
+};
+const FloatTextV6 = FloatText;
+FloatText = function(...A){if(Settings.Dmg) FloatTextV6(...A)};
+const HurtPlayerV6 = HurtPlayer;
+HurtPlayer = function(A, S){const H0 = Player ? Player.Hp : 0; HurtPlayerV6(A, S); if(Player && Player.Hp < H0 && Settings.Flash && !Settings.Reduce){FlashEl.classList.remove('On'); void FlashEl.offsetWidth; FlashEl.classList.add('On')}};
+
+/* keep playing while the tab is hidden (browsers may slow hidden tabs) */
+let BgLast = performance.now();
+setInterval(() => {
+ const Now = performance.now(); let D = Math.min(8, (Now - BgLast) / 1000); BgLast = Now;
+ if(!document.hidden || !Settings.Bg || Mode !== 'play' || !Player) return;
+ while(D > 0 && Mode === 'play'){const St = Math.min(.05, D); Update(St); TraitTick(St); D -= St}
+}, 250);
+
+/* your bolts can destroy enemy shots; earth smashes them without being used up */
+const TraitTickV6 = TraitTick;
+TraitTick = function(Dt){
+ TraitTickV6(Dt);
+ for(const Bt of Bolts){
+  if(Bt.Life <= 0) continue;
+  for(const Eb of EnemyBolts){
+   if(Eb.Life <= 0 || Math.hypot(Bt.X - Eb.X, Bt.Y - Eb.Y) > Bt.Size + 6) continue;
+   Eb.Life = 0; Ring(Eb.X, Eb.Y, '#ffffff', 18, .2); Burst(Eb.X, Eb.Y, Elems[Bt.Elem].Color, 5, 130, .25);
+   if(Bt.Pierce > 0) Bt.Pierce--; else if(Bt.Elem !== 'Earth') Bt.Life = 0;
+   if(Bt.Life <= 0) break;
+  }
+ }
+};
+const NovaV6 = Nova;
+Nova = function(){const Ready = Mode === 'play' && Player && !((Player.NovaCd || 0) > 0); NovaV6(); if(Ready) for(const Eb of EnemyBolts) if(Math.hypot(Eb.X - Player.X, Eb.Y - Player.Y) < 260) Eb.Life = 0};
+const DashV6 = Dash;
+Dash = function(){const Ready = Mode === 'play' && Player && !((Player.DashCd || 0) > 0); const X0 = Player ? Player.X : 0, Y0 = Player ? Player.Y : 0; DashV6(); if(Ready && Settings.Quality > 0 && Settings.Quality < 3){const Dx = Player.KnockX, Dy = Player.KnockY, L = Math.hypot(Dx, Dy) || 1; for(let I = 1; I <= 6; I++) Particles.push({X: X0 + Dx / L * I * 16, Y: Y0 + Dy / L * I * 16, Vx: 0, Vy: 0, Life: .2 + I * .04, MaxLife: .5, Color: Elems[LastElem].Color, Size: 10 - I})}};
+
+/* level-3 element abilities */
+let EmberDepth = 0;
+const ApplyElementV6 = ApplyElement;
+ApplyElement = function(En, Bt){
+ ApplyElementV6(En, Bt);
+ if((Elem[Bt.Elem] || 0) < 3) return;
+ if(Bt.Elem === 'Water'){En.WH = (En.WH || 0) + 1; if(En.WH % 6 === 0){En.StunT = Math.max(En.StunT, .8); Ring(En.X, En.Y, Elems.Water.Color, En.Radius * 2, .3); FloatText(En.X, En.Y - 20, 'FREEZE', Elems.Water.Color)}}
+ else if(Bt.Elem === 'Earth' && En.StunT > 0){DamageEnemy(En, Bt.Damage * .8, false, En.X - Player.X, En.Y - Player.Y, Elems.Earth.Color, 0); FloatText(En.X, En.Y - 20, 'SHATTER', Elems.Earth.Color)}
+ else if(Bt.Elem === 'Wind'){
+  let Best2 = null, BD = 170;
+  for(const O of Enemies) if(O !== En && O.Hp > 0 && O.SpawnLeft <= 0){const D = Math.hypot(O.X - En.X, O.Y - En.Y); if(D < BD){BD = D; Best2 = O}}
+  if(Best2){DamageEnemy(Best2, Bt.Damage * .5, false, Best2.X - En.X, Best2.Y - En.Y, Elems.Wind.Color, 30); Ring(Best2.X, Best2.Y, Elems.Wind.Color, 24, .2)}
+ }
+};
+const KillEnemyV6 = KillEnemy;
+KillEnemy = function(En){
+ KillEnemyV6(En);
+ if(En.Burn && (Elem.Fire || 0) >= 3 && EmberDepth < 2){
+  EmberDepth++; Ring(En.X, En.Y, Elems.Fire.Color, 80, .35); Burst(En.X, En.Y, Elems.Fire.Color, 12, 220, .4);
+  for(const O of Enemies) if(O !== En && O.Hp > 0 && O.SpawnLeft <= 0 && Math.hypot(O.X - En.X, O.Y - En.Y) < 80) DamageEnemy(O, Stats.Damage * .6, false, O.X - En.X, O.Y - En.Y, Elems.Fire.Color, 40);
+  EmberDepth--;
+ }
+};
+
+/* settings screen */
+const CycOpts = {Quality: [0, 1, 2], Fps: [0, 30, 45, 60, 90, 120]};
+function RenderSettings(){
+ const Sl = (K, L, Min = 0) => `<label class="SetRow"><span>${L}</span><input type="range" min="${Min}" max="100" value="${Math.round(Settings[K] * 100)}" data-set="${K}"></label>`;
+ const Tg = (K, L, Ds) => `<button class="Pick SetTog ${Settings[K] ? 'Sel' : ''}" data-tog="${K}"><span class="PName">${L} · ${Settings[K] ? 'On' : 'Off'}</span><span class="PSub">${Ds}</span></button>`;
+ const Cy = (K, L, Ds, Val) => `<button class="Pick SetTog" data-cyc="${K}"><span class="PName">${L} · ${Val}</span><span class="PSub">${Ds}</span></button>`;
+ Ui.className = 'On';
+ Ui.innerHTML = `<div class="Box" style="max-width:720px"><h2>Settings</h2>
+ <div class="Panel"><div class="PTitle">Audio</div>${Sl('Master', 'Master volume')}${Sl('Music', 'Music')}${Sl('Sfx', 'Sound effects')}</div>
+ <div class="Panel" style="margin-top:10px"><div class="PTitle">Graphics</div>${Sl('Scale', 'Render scale', 50)}
+ <div class="PGrid2" style="margin-top:8px">${Cy('Quality', 'Quality', 'Particles and trails', ['Low', 'Medium', 'High'][Settings.Quality ?? 2])}${Cy('Fps', 'FPS limit', 'Lower saves battery', Settings.Fps || 'Unlimited')}${Tg('ShowFps', 'FPS counter', 'Shown bottom-left')}${Tg('Dmg', 'Damage numbers', 'Floating combat text')}${Tg('Flash', 'Hit flash', 'Red edge flash when hurt')}${Tg('Shake', 'Screen shake', 'Camera kick on big hits')}${Tg('Reduce', 'Reduced motion', 'Fewer animations and particles')}</div></div>
+ <div class="Panel" style="margin-top:10px"><div class="PTitle">Play</div><div class="PGrid2">${Tg('Cb', 'Colorblind palette', 'Safe colors and bolt shapes')}${Tg('Lefty', 'Left-handed touch', 'Swap the sticks')}${Tg('Bg', 'Run in background', 'Keeps playing when the tab is hidden; browsers may slow it')}</div></div>
+ <button class="Btn" style="margin-top:14px" data-act="back">Back</button></div>`;
+}
+Ui.addEventListener('click', Ev => {
+ const B = Ev.target.closest('button'); if(!B || !B.dataset.cyc) return;
+ const L = CycOpts[B.dataset.cyc], K = B.dataset.cyc; Settings[K] = L[(L.indexOf(Settings[K]) + 1) % L.length]; ApplySettings(); RenderSettings(); Ev.stopImmediatePropagation();
+}, true);
+ApplySettings();
+
+/* ---------- v7: pacts (trade-off upgrades) + multi-ability bosses ---------- */
+StatList.push(['EnemySpeed', 'Enemy Speed', Percent]);
+const Pacts = {
+ Reckless: {Name: 'Reckless Aim', Glyph: '☄', Up: '+30% Critical Chance', Down: '-50% Critical Damage', Ok: () => Stats.CriticalChance <= StatCaps.CriticalChance - .2 && Stats.CriticalDamage > -.3, Do(){Stats.CriticalChance = Math.min(StatCaps.CriticalChance, Stats.CriticalChance + .3); Stats.CriticalDamage = Math.max(-.8, Stats.CriticalDamage - .5)}},
+ GlassEdge: {Name: 'Glass Edge', Glyph: '◇', Up: '+25% Damage', Down: '-20% Max HP', Ok: () => Stats.MaximumHealth >= 60, Do(){Stats.DamageMult += .25; Stats.MaximumHealth = Math.round(Stats.MaximumHealth * .8); Player.Hp = Math.min(Player.Hp, Stats.MaximumHealth)}},
+ Berserker: {Name: 'Berserker', Glyph: '⚔', Up: '+30% Fire Rate', Down: '-15% Move Speed', Ok: () => Stats.MovementSpeed > 90, Do(){Stats.FireRate *= 1.3; Stats.MovementSpeed *= .85}},
+ IronHide: {Name: 'Iron Hide', Glyph: '▣', Up: '+3 Defense', Down: '-20% Move Speed', Ok: () => Stats.MovementSpeed > 90, Do(){Stats.Defense += 3; Stats.MovementSpeed *= .8}},
+ Sprinter: {Name: 'Sprinter', Glyph: '»', Up: '+25% Move Speed', Down: '-15% Damage', Ok: () => Stats.DamageMult > -.4, Do(){Stats.MovementSpeed *= 1.25; Stats.DamageMult -= .15}},
+ Bounty: {Name: 'Bounty Hunter', Glyph: '★', Up: '+40% Experience', Down: 'Enemies 10% faster', Ok: () => (Stats.EnemySpeed || 0) < .3, Do(){Stats.ExperienceBonus += .4; Stats.EnemySpeed += .1}},
+ TwinFire: {Name: 'Twin Fire', Glyph: '⁝', Up: '+1 Projectile', Down: '-25% Damage', Ok: () => Stats.Projectile < 10 && Stats.DamageMult > -.4, Do(){Stats.Projectile++; Stats.DamageMult -= .25}},
+ Vampiric: {Name: 'Vampiric Pact', Glyph: '♥', Up: '+3% Lifesteal', Down: 'Lose passive regeneration', Ok: () => Stats.Regeneration >= .4 && Stats.Lifesteal <= StatCaps.Lifesteal - .03, Do(){Stats.Lifesteal += .03; Stats.Regeneration = Math.max(0, Stats.Regeneration - .5)}},
+ Deal: {Name: "Executioner's Deal", Glyph: '✖', Up: '+40% Execute damage', Down: '-10% Fire Rate', Ok: () => Stats.FireRate > 1, Do(){Stats.Execute += .4; Stats.FireRate *= .9}},
+ DashMaster: {Name: 'Dash Master', Glyph: '≫', Up: '+30% Dash haste', Down: '-15% Max HP', Ok: () => Stats.MaximumHealth >= 50 && (Stats.DashHaste || 0) <= .2, Do(){Stats.DashHaste += .3; Stats.MaximumHealth = Math.round(Stats.MaximumHealth * .85); Player.Hp = Math.min(Player.Hp, Stats.MaximumHealth)}}
+};
+const ApplyOfferV7 = ApplyOffer;
+ApplyOffer = function(O){if(O.Kind === 'Pact'){FillStats(); Pacts[O.Id].Do(); return} ApplyOfferV7(O)};
+const CardHtmlV7 = CardHtml;
+CardHtml = function(Offer, Index, Animate){
+ if(Offer.Kind !== 'Pact') return CardHtmlV7(Offer, Index, Animate);
+ const P = Pacts[Offer.Id], C = '#c77dff';
+ return `<button class="Card Pact ${Animate ? 'In' : ''}" style="--Index:${Index};border-color:${C};box-shadow:0 0 16px ${C}55" data-pick="${Index}"><div class="Glyph" style="color:${C}">${P.Glyph}</div><em style="color:${C}">Pact · Trade-off</em><b>${P.Name}</b><span><span style="color:#7dffa6">▲ ${P.Up}</span><br><span style="color:#ff7d8f">▼ ${P.Down}</span></span></button>`;
+};
+const RollOffersV7 = RollOffers;
+RollOffers = function(){
+ const Out = RollOffersV7();
+ if(Round >= 2 && Math.random() < .6){
+  FillStats();
+  const Ok = Object.keys(Pacts).filter(K => Pacts[K].Ok());
+  if(Ok.length){const Pk = {Kind: 'Pact', Id: Ok[Math.floor(Math.random() * Ok.length)]}, I = Out.findIndex(O => O.Kind === 'Item'); if(I >= 0) Out[I] = Pk; else Out.push(Pk)}
+ }
+ return Out;
+};
+
+/* bosses: three ability sets each, faster below 50% HP */
+const BossSets = {Brute: ['charge', 'slam', 'ring'], Summoner: ['summon', 'shield', 'blink'], Spinner: ['spiral', 'volley', 'burst']};
+function BossShot(En, A){if(EnemyBolts.length < 170) EnemyShot(En, A)}
+function BossTick(En, Dt){
+ const Ph2 = En.Hp < En.MaxHp * .5, Ang = Math.atan2(Player.Y - En.Y, Player.X - En.X);
+ if(En.SlamT > 0){En.SlamT -= Dt; if(En.SlamT <= 0){Ring(En.X, En.Y, '#ff5d73', 110, .4); Shake = Math.max(Shake, 12); if(Math.hypot(Player.X - En.X, Player.Y - En.Y) < 110) HurtPlayer(En.Damage, En); for(let I = 0; I < 14; I++) BossShot(En, I / 14 * Tau); En.Cast = ''}}
+ if(En.Tele > 0){En.Tele -= Dt; if(En.Tele <= 0){En.Speed = En.BaseSp; const L = Math.hypot(Player.X - En.X, Player.Y - En.Y) || 1; En.KnockX = (Player.X - En.X) / L * 900; En.KnockY = (Player.Y - En.Y) / L * 900; En.Cast = ''}}
+ if(En.SpinT > 0){En.SpinT -= Dt; En.SpinA = (En.SpinA || 0) + Dt * 2.2; En.SW = (En.SW ?? 0) - Dt; if(En.SW <= 0){En.SW = .12; BossShot(En, En.SpinA * 3)} if(En.SpinT <= 0) En.Cast = ''}
+ if(En.CastT > 0){En.CastT -= Dt; if(En.CastT <= 0 && !(En.SlamT > 0 || En.Tele > 0 || En.SpinT > 0)) En.Cast = ''}
+ En.AbT = (En.AbT ?? 3) - Dt;
+ if(En.AbT > 0 || En.SlamT > 0 || En.Tele > 0 || En.SpinT > 0) return;
+ const List = BossSets[En.Boss]; if(!List) return;
+ En.AbI = ((En.AbI ?? -1) + 1) % List.length; const A = List[En.AbI]; En.AbT = Ph2 ? 2.6 : 4.2; En.Cast = A.toUpperCase();
+ const N = Ph2 ? 22 : 14;
+ if(A === 'charge'){En.Tele = .8; En.BaseSp = En.Speed; En.Speed = 0}
+ else if(A === 'slam') En.SlamT = .9;
+ else if(A === 'spiral') En.SpinT = Ph2 ? 3.2 : 2.4;
+ else{
+  if(A === 'ring' || A === 'burst') for(let I = 0; I < N; I++) BossShot(En, I / N * Tau + Ang);
+  else if(A === 'volley') for(let I = -2; I <= 2; I++) BossShot(En, Ang + I * .18);
+  else if(A === 'shield'){En.Shield = En.MaxHp * .2; Ring(En.X, En.Y, '#4fb4ff', En.Radius * 2.4, .4)}
+  else if(A === 'summon'){Ring(En.X, En.Y, En.Color, 120, .5); for(let I = 0; I < (Ph2 ? 5 : 3) && Enemies.length < 120; I++){SpawnEnemy(1); const M = Enemies[Enemies.length - 1]; M.X = Clamp(En.X + RandRange(-70, 70), 20, Arena - 20); M.Y = Clamp(En.Y + RandRange(-70, 70), 20, Arena - 20); M.SpawnLeft = M.SpawnTotal = .4}}
+  else if(A === 'blink'){Ring(En.X, En.Y, En.Color, 80, .4); const T = RandRange(0, Tau); En.X = Clamp(Player.X + Math.cos(T) * 230, 40, Arena - 40); En.Y = Clamp(Player.Y + Math.sin(T) * 230, 40, Arena - 40); Ring(En.X, En.Y, En.Color, 80, .4); for(let I = 0; I < 8; I++) BossShot(En, I / 8 * Tau)}
+  En.CastT = .9;
+ }
+}
+const TraitTickV7 = TraitTick;
+TraitTick = function(Dt){TraitTickV7(Dt); for(const En of Enemies) if(En.Boss && En.SpawnLeft <= 0 && En.Hp > 0) BossTick(En, Dt)};
 
 /* ---------- attract mode: a live demo fights behind the menu ---------- */
 const Demo = {T: 0, Foes: [], Shots: [], Fx: [], Cd: 0, Spawn: 0, Aim: 0, Shot: 0, Kills: 0};
@@ -2334,7 +2523,10 @@ function DrawAttract(){
 const ShowMenuLive = ShowMenu;
 ShowMenu = function(){ShowMenuLive(); Ui.classList.add('Menu')};
 
+for(const K of Object.keys(Modes)) SaveStore.Get(K);
+if(Tampered) MenuNote = 'A modified save was detected and reset.';
 ShowMenu(); requestAnimationFrame(Loop);
+try{localStorage.setItem('ShapeSwarmSealed', '1')}catch(Err){}
 </script>
 </body>
 </html>
