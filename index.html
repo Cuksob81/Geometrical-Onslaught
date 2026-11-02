@@ -636,6 +636,15 @@ p {
 @media (max-height:520px) { .GBox { gap:6px; } .GIcons { display:none; } .GBox h1 { font-size:30px; } .GBox h1 br { display:none; } .GTag { margin:0 0 4px; font-size:14px; } .GBtn { min-height:46px; } .GBox small { font-size:12px; } }
 body.GateOn #UiLayer { visibility:hidden; }
 @media (max-height:520px) { .Join,.Profile { margin-top:8px; padding:8px 10px; gap:4px; } .Join span { display:none; } .JoinBtn { padding:7px 14px; font-size:14px; } .Tabs { gap:4px; } .TabBtn { padding:7px 6px; font-size:13px; } }
+
+.Setup { width:100%; max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:12px; text-align:left; }
+.SHead { display:flex; align-items:center; gap:14px; } .SHead h2 { margin:0; font-size:28px; } .SHead .Ghost { margin:0; }
+.SGrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; } .SWide { grid-column:1 / -1; }
+.PGrid5 { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+.SFoot { position:sticky; bottom:0; display:flex; gap:14px; align-items:center; justify-content:space-between; flex-wrap:wrap; padding:12px 16px; border-radius:16px; background:rgba(16,20,46,.97); border:1px solid #2a3166; box-shadow:0 -10px 24px rgba(8,10,24,.7); }
+.SSum { display:flex; flex-direction:column; gap:3px; font-size:15px; } .SSum small { color:var(--Amber); font-weight:700; }
+@media (max-width:900px) { .SGrid { grid-template-columns:1fr; } .PGrid4,.PGrid5 { grid-template-columns:repeat(2,1fr); } }
+@media (max-height:520px) { .SHead h2 { font-size:20px; } .SGrid { grid-template-columns:1fr 1fr; gap:8px; } .Setup { gap:8px; } .SFoot { padding:8px 12px; } .SSum { font-size:13px; } .PGrid4 { grid-template-columns:repeat(4,1fr); } .PGrid5 { grid-template-columns:repeat(5,1fr); } .PGrid3 { gap:5px; } }
 </style>
 </head>
 
@@ -653,7 +662,7 @@ const Canvas = GetById('GameCanvas'), Context = Canvas.getContext('2d'), Ui = Ge
 const Arena = 2400, Tau = Math.PI * 2, PlayerRadius = 14, JoyRadius = 55;
 let Width, Height, Dpr, Zoom, SafeTop = 0, SafeBottom = 0;
 
-var RenderScale = 1, FpsGap = 0, FpsBox = null;
+var RenderScale = 1, FpsGap = 0, FpsBox = null, ViewScale = 1;
 function Resize(){
  Dpr = (devicePixelRatio || 1) * RenderScale;
  const VV = window.visualViewport;
@@ -663,7 +672,7 @@ function Resize(){
  document.documentElement.style.setProperty('--app-h', Height + 'px');
  Canvas.width = Width * Dpr;
  Canvas.height = Height * Dpr;
- Zoom = Math.min(Width, Height) / 520;
+ Zoom = Math.min(Width, Height) / 520 * ViewScale;
  SafeTop = GetById('TopProbe').offsetHeight;
  SafeBottom = GetById('BottomProbe').offsetHeight;
 }
@@ -1230,12 +1239,12 @@ const WS = Workshop.map(W => {const L = Meta.Up[W.Key] || 0, C = WorkshopCost(L,
   <div class="Glyphs Rise" style="--d:0">${Glyphs}</div>
   <h1 class="Rise" style="--d:1">Geometrical<br>Onslaught</h1>
   <p class="Lead Rise" style="--d:2">Master Fire, Water, Earth and Wind. Every round has an objective: complete it for a bonus upgrade, fail it and lose health.</p>
-  <div class="Rise" style="--d:3"><button class="PlayBtn" data-act="play"><span>▶</span>Play</button>${ContinueHtml()}</div>
+  <div class="Rise" style="--d:3"><button class="PlayBtn" data-act="setup"><span>▶</span>Play</button>${ContinueHtml()}<div><button class="Ghost" data-act="play" style="margin:10px 0 0">⚡ Quick start · ${SelMode} · ${SelDiff} · ${SelElem}</button></div></div>
   <div class="Loadout Rise" style="--d:4"><b>${SelMode}</b> · starting with <b style="color:${Elems[SelElem].Color}">${SelElem}</b>${Bst}</div>
   ${JoinCard()}
   ${MenuNote ? '<div class="Note">' + MenuNote + '</div>' : ''}
  </div>
- <div class="MPanels Tab_${MenuTab}"><div class="Tabs Rise" style="--d:1"><button class="TabBtn ${MenuTab === 'run' ? 'On' : ''}" data-tab="run">Run</button><button class="TabBtn ${MenuTab === 'shop' ? 'On' : ''}" data-tab="shop">Workshop</button><button class="TabBtn ${MenuTab === 'mut' ? 'On' : ''}" data-tab="mut">Mutators${Object.values(Mut).some(Boolean) ? ' · ' + Object.values(Mut).filter(Boolean).length : ''}</button><button class="TabBtn ${MenuTab === 'rank' ? 'On' : ''}" data-tab="rank">Ranking</button></div>
+ <div class="MPanels Tab_${MenuTab}"><div class="Tabs Rise" style="--d:1"><button class="TabBtn ${MenuTab === 'shop' ? 'On' : ''}" data-tab="shop">Workshop</button><button class="TabBtn ${MenuTab === 'rank' ? 'On' : ''}" data-tab="rank">Ranking</button></div>
   <div class="Panel Rise T-run" style="--d:2"><div class="PTitle">Mode</div><div class="PGrid3">${ModeCards}</div></div>
   <div class="Panel Rise T-run" style="--d:3"><div class="PTitle">Starting element</div><div class="PGrid2">${ElemCards}</div></div>
   <div class="Panel Rise T-shop" style="--d:4"><div class="PTitle">Workshop <b style="float:right;color:var(--Amber)">◆ ${Meta.Shards} shards</b></div><div class="PGrid3 WsScroll">${WS}</div></div>
@@ -1841,6 +1850,7 @@ function Draw(){
    Context.fillStyle = '#ff5d73'; Context.fillRect(En.X - En.Radius, En.Y - En.Radius - 9, En.Radius * 2 * En.Hp / En.MaxHp, 3);
   }
  }
+ for(const M of Meteor){Context.strokeStyle = '#ffc857'; Context.fillStyle = '#ffc857'; Context.lineWidth = 3; Context.globalAlpha = .75; Poly(M.X, M.Y, M.R, 0); Context.stroke(); Context.globalAlpha = .22; Context.beginPath(); Context.arc(M.X, M.Y, M.R * (1 - M.T / 1.1), 0, Tau); Context.fill(); Context.globalAlpha = 1}
  for(const En of Enemies){
   if(En.SpawnLeft > 0) continue;
   if(En.Shield > 0){Context.strokeStyle = '#4fb4ff'; Context.lineWidth = 2; Context.globalAlpha = .4 + .6 * En.Shield / En.MaxHp; Poly(En.X, En.Y, En.Radius + 4, 0); Context.stroke(); Context.globalAlpha = 1}
@@ -1928,7 +1938,8 @@ function DrawHud(){
  Context.fillStyle = Nc > 0 ? '#8f98c8' : '#ffc857'; Context.fillRect(16, BarY + 68, 64 * (1 - Nc / NovaMax()), 4);
  if(InputMode === 'key'){Context.fillStyle = '#8f98c8'; Context.font = '700 11px "Chakra Petch",sans-serif'; Context.fillText(Nc > 0 ? 'Nova ' + Math.ceil(Nc) + 's' : 'Nova ready · E', 88, BarY + 73)}
  const MsK = Object.keys(RM()).filter(K => RM()[K]);
- if(MsK.length){Context.fillStyle = '#ff9bab'; Context.font = '700 11px "Chakra Petch",sans-serif'; Context.fillText('Mutators: ' + MsK.join(', '), 16, BarY + 92)}
+ Context.fillStyle = EventKey ? Events[EventKey].Color : RunDiff().Color; Context.font = '700 11px "Chakra Petch",sans-serif'; Context.fillText((Player.Diff || SelDiff) + (EventKey ? ' · ' + Events[EventKey].Name : ''), 16, BarY + 92);
+ if(MsK.length){Context.fillStyle = '#ff9bab'; Context.font = '700 11px "Chakra Petch",sans-serif'; Context.fillText('Mutators: ' + MsK.join(', '), 16, BarY + 106)}
 
  /* time */
  const Cfg = Modes[ModeKey];
@@ -2042,7 +2053,7 @@ const NewRunV3 = NewRun;
 NewRun = function(){
  NewRunV3();
  const U = Meta.Up; Stats.MaximumHealth += 10 * (U.Vigor || 0); Player.Hp = Stats.MaximumHealth;
- Player.Mut = Object.assign({}, Mut); FillStats(); EliteT = 20; Stats.Damage += (U.Might || 0); Stats.Regeneration += .25 * (U.Regen || 0); Stats.Evasion += .015 * (U.Dodge || 0); Stats.BlastRadius += 8 * (U.Blast || 0); Elem[SelElem] += (U.Prime || 0); Stats.Defense += (U.Plate || 0); Stats.MovementSpeed *= 1 + .04 * (U.Thrust || 0); Stats.PickupRange += 20 * (U.Magnet || 0); Stats.ExperienceBonus += .06 * (U.Scholar || 0); Stats.Luck += .04 * (U.Fortune || 0); Stats.Lifesteal += .005 * (U.Leech || 0); Pending += (U.Head || 0); Stats.FireRate *= 1 + .05 * (U.Haste || 0); Rerolls += (U.Spare || 0);
+ Player.Mut = Object.assign({}, Mut); Player.Diff = SelDiff; FillStats(); EliteT = 20; Stats.Damage += (U.Might || 0); Stats.Regeneration += .25 * (U.Regen || 0); Stats.Evasion += .015 * (U.Dodge || 0); Stats.BlastRadius += 8 * (U.Blast || 0); Elem[SelElem] += (U.Prime || 0); Stats.Defense += (U.Plate || 0); Stats.MovementSpeed *= 1 + .04 * (U.Thrust || 0); Stats.PickupRange += 20 * (U.Magnet || 0); Stats.ExperienceBonus += .06 * (U.Scholar || 0); Stats.Luck += .04 * (U.Fortune || 0); Stats.Lifesteal += .005 * (U.Leech || 0); Pending += (U.Head || 0); Stats.FireRate *= 1 + .05 * (U.Haste || 0); Rerolls += (U.Spare || 0);
  if(RM().Glass){Stats.MaximumHealth = Math.round(Stats.MaximumHealth * .5); Player.Hp = Stats.MaximumHealth; Stats.Damage *= 1.6}
  if(RM().NoRegen) Stats.Regeneration = 0;
  if(RM().Heavy){Stats.MovementSpeed *= .75; Stats.Damage *= 1.35}
@@ -2070,7 +2081,7 @@ KillEnemy = function(En){KillEnemyV3(En);
 const GameOverV3 = GameOver;
 GameOver = function(Won){
  const Prev = Best[ModeKey] || 0, Score = Math.floor(RunStats.Time);
- LastGain = Math.max(1, Math.round((RunStats.Kills / 8 + Round * 4 + RunStats.Time / 30 + (Won ? 25 : 0)) * (1 + .2 * Object.values(RM()).filter(Boolean).length) * (1 + .05 * (Meta.Up.Banker || 0))));
+ LastGain = Math.max(1, Math.round((RunStats.Kills / 8 + Round * 4 + RunStats.Time / 30 + (Won ? 25 : 0)) * (1 + .2 * Object.values(RM()).filter(Boolean).length) * (1 + .05 * (Meta.Up.Banker || 0)) * RunDiff().Shards));
  Meta.Shards += LastGain; SaveMeta();
  const Mk = ModeKey, Rd = Round, Lv = Player.Level, Kl = RunStats.Kills, Tm = FormatTime(RunStats.Time), El = SelElem;
  GameOverV3(Won);
@@ -2096,7 +2107,7 @@ Ui.addEventListener('click', Ev => {
 }, true);
 
 /* ---------- v4: settings, music, mutators, synergies, nova, traits, bosses, pause, palette ---------- */
-const Settings = Object.assign({Master: .8, Music: .5, Sfx: 1, Shake: true, Reduce: matchMedia('(prefers-reduced-motion: reduce)').matches, Cb: false, Lefty: false, Quality: 2, Scale: 1, Fps: 0, ShowFps: false, Dmg: true, Flash: true, Bg: false}, (() => {try{return JSON.parse(StorageGet('ShapeSwarmSettings') || '{}') || {}}catch(Err){return {}}})());
+const Settings = Object.assign({Master: .8, Music: .5, Sfx: 1, Shake: true, Reduce: matchMedia('(prefers-reduced-motion: reduce)').matches, Cb: false, Lefty: false, View: 1, Quality: 2, Scale: 1, Fps: 0, ShowFps: false, Dmg: true, Flash: true, Bg: false}, (() => {try{return JSON.parse(StorageGet('ShapeSwarmSettings') || '{}') || {}}catch(Err){return {}}})());
 let Mut = Object.assign({Glass: false, Swarm: false, Fast: false, NoRegen: false}, (() => {try{return JSON.parse(StorageGet('ShapeSwarmMut') || '{}') || {}}catch(Err){return {}}})());
 let MusicStep = 0, MusicNext = 0;
 const CbElem = {Fire: '#D55E00', Water: '#56B4E9', Earth: '#F0E442', Wind: '#009E73'}, CbEnemy = ['#CC79A7', '#F0E442', '#0072B2', '#E69F00', '#D55E00'];
@@ -2105,7 +2116,7 @@ const BoltSides = E => Settings.Cb ? {Fire: 3, Water: 0, Earth: 4, Wind: 6}[E] :
 function ApplySettings(){
  SfxVol = Settings.Sfx * Settings.Master; ShakeOn = Settings.Shake && !Settings.Reduce;
  document.body.classList.toggle('Reduce', !!Settings.Reduce);
- RenderScale = Clamp(Settings.Scale || 1, .5, 1); FpsGap = Settings.Fps ? 1000 / Settings.Fps - 1 : 0; if(FpsBox) FpsBox.style.display = Settings.ShowFps ? 'block' : 'none'; Resize();
+ RenderScale = Clamp(Settings.Scale || 1, .5, 1); ViewScale = Clamp(Settings.View || 1, .6, 1.5); FpsGap = Settings.Fps ? 1000 / Settings.Fps - 1 : 0; if(FpsBox) FpsBox.style.display = Settings.ShowFps ? 'block' : 'none'; Resize();
  ElemNames.forEach(N => {Elems[N].Color = Settings.Cb ? CbElem[N] : OrigElem[N]});
  EnemyTypes.forEach((T, I) => {T.Color = Settings.Cb ? CbEnemy[I] : OrigEnemy[I]});
  StorageSet('ShapeSwarmSettings', JSON.stringify(Settings));
@@ -2206,11 +2217,12 @@ SpawnEnemy = function(Kind, Elite){
  if(Kind === 4 && !Elite){En.Boss = ['Brute', 'Summoner', 'Spinner'][Math.floor(Round / 5) % 3]; En.Color = {Brute: '#ff3b3b', Summoner: '#9b7bff', Spinner: '#ffc857'}[En.Boss]}
  else if(!Elite && Kind <= 2 && Round >= 3){
   const R = Math.random();
-  if(R < .10){En.Trait = 'shield'; En.Shield = En.MaxHp * .6}
-  else if(R < .17) En.Trait = 'charger';
-  else if(R < .22 && Round >= 5) En.Trait = 'healer';
+  if(R < .10 * RunDiff().Trait){En.Trait = 'shield'; En.Shield = En.MaxHp * .6}
+  else if(R < .17 * RunDiff().Trait) En.Trait = 'charger';
+  else if(R < .22 * RunDiff().Trait && Round >= 5) En.Trait = 'healer';
  }
  if(RM().Fast) En.Speed *= 1.25;
+ { const DD = RunDiff(); En.Hp *= DD.Hp; En.MaxHp *= DD.Hp; En.Speed *= DD.Speed; En.Damage *= DD.Dmg; if(EventKey === 'BloodMoon') En.Speed *= 1.2; if(EventKey === 'Overcharge'){En.Hp *= 1.2; En.MaxHp *= 1.2} }
  if(Stats.EnemySpeed) En.Speed *= 1 + Stats.EnemySpeed;
  if(RM().Armored){En.Hp *= 1.4; En.MaxHp *= 1.4}
 };
@@ -2244,7 +2256,7 @@ function TraitTick(Dt){
   }
  }
 }
-if(typeof UpdateDifficulty === 'function'){const UpdateDifficultyV4 = UpdateDifficulty; UpdateDifficulty = function(){UpdateDifficultyV4(); Diff *= .9; if(RM().Swarm) Diff *= 1.25}}
+if(typeof UpdateDifficulty === 'function'){const UpdateDifficultyV4 = UpdateDifficulty; UpdateDifficulty = function(){UpdateDifficultyV4(); Diff *= RunDiff().Pressure; if(RM().Swarm) Diff *= 1.25}}
 
 /* pause + settings screens */
 function RenderPause(){
@@ -2268,7 +2280,7 @@ Ui.addEventListener('click', Ev => {
 }, true);
 
 /* ---------- v5: icons, items, fullscreen, tabs ---------- */
-let MenuTab = 'run', EliteT = 20;
+let MenuTab = 'rank', EliteT = 20;
 const RM = () => (Player && Player.Mut) || {};
 const ElemSides = {Fire: 3, Water: 0, Earth: 4, Wind: 4}, ElemRot = {Fire: 0, Water: 0, Earth: Math.PI / 4, Wind: 0};
 function ElemIcon(N, Px){
@@ -2289,7 +2301,7 @@ Items.push(
 StatList.push(['DamageMult', 'Damage Bonus', Percent], ['Execute', 'Execute Bonus', Percent], ['DashHaste', 'Dash Haste', Percent], ['NovaPower', 'Nova Power', Percent], ['OrbHeal', 'Orb Heal', V => Round2(V)]);
 StatCaps.DashHaste = .5;
 const GainXpV5 = GainXp;
-GainXp = function(V){GainXpV5(V); if(Stats && Stats.OrbHeal && Player && Mode === 'play') Player.Hp = Math.min(Stats.MaximumHealth, Player.Hp + Stats.OrbHeal)};
+GainXp = function(V){GainXpV5(EventKey === 'BloodMoon' ? V * 2 : V); if(Stats && Stats.OrbHeal && Player && Mode === 'play') Player.Hp = Math.min(Stats.MaximumHealth, Player.Hp + Stats.OrbHeal)};
 const LoadRunV5 = LoadRun;
 LoadRun = function(M){const Ok = LoadRunV5(M); if(Ok) FillStats(); return Ok};
 Ui.addEventListener('click', Ev => {
@@ -2381,13 +2393,13 @@ KillEnemy = function(En){
 /* settings screen */
 const CycOpts = {Quality: [0, 1, 2], Fps: [0, 30, 45, 60, 90, 120]};
 function RenderSettings(){
- const Sl = (K, L, Min = 0) => `<label class="SetRow"><span>${L}</span><input type="range" min="${Min}" max="100" value="${Math.round(Settings[K] * 100)}" data-set="${K}"></label>`;
+ const Sl = (K, L, Min = 0, Max = 100) => `<label class="SetRow"><span>${L}</span><input type="range" min="${Min}" max="${Max}" value="${Math.round(Settings[K] * 100)}" data-set="${K}"></label>`;
  const Tg = (K, L, Ds) => `<button class="Pick SetTog ${Settings[K] ? 'Sel' : ''}" data-tog="${K}"><span class="PName">${L} · ${Settings[K] ? 'On' : 'Off'}</span><span class="PSub">${Ds}</span></button>`;
  const Cy = (K, L, Ds, Val) => `<button class="Pick SetTog" data-cyc="${K}"><span class="PName">${L} · ${Val}</span><span class="PSub">${Ds}</span></button>`;
  Ui.className = 'On';
  Ui.innerHTML = `<div class="Box" style="max-width:720px"><h2>Settings</h2>
  <div class="Panel"><div class="PTitle">Audio</div>${Sl('Master', 'Master volume')}${Sl('Music', 'Music')}${Sl('Sfx', 'Sound effects')}</div>
- <div class="Panel" style="margin-top:10px"><div class="PTitle">Graphics</div>${Sl('Scale', 'Render scale', 50)}
+ <div class="Panel" style="margin-top:10px"><div class="PTitle">Graphics</div>${Sl('Scale', 'Render scale', 50)}${Sl('View', 'View distance (zoom out / in; mouse wheel works in game)', 60, 150)}
  <div class="PGrid2" style="margin-top:8px">${Cy('Quality', 'Quality', 'Particles and trails', ['Low', 'Medium', 'High'][Settings.Quality ?? 2])}${Cy('Fps', 'FPS limit', 'Lower saves battery', Settings.Fps || 'Unlimited')}${Tg('ShowFps', 'FPS counter', 'Shown bottom-left')}${Tg('Dmg', 'Damage numbers', 'Floating combat text')}${Tg('Flash', 'Hit flash', 'Red edge flash when hurt')}${Tg('Shake', 'Screen shake', 'Camera kick on big hits')}${Tg('Reduce', 'Reduced motion', 'Fewer animations and particles')}</div></div>
  <div class="Panel" style="margin-top:10px"><div class="PTitle">Play</div><div class="PGrid2">${Tg('Cb', 'Colorblind palette', 'Safe colors and bolt shapes')}${Tg('Lefty', 'Left-handed touch', 'Swap the sticks')}${Tg('Bg', 'Run in background', 'Keeps playing when the tab is hidden; browsers may slow it')}</div></div>
  <button class="Btn" style="margin-top:14px" data-act="back">Back</button></div>`;
@@ -2443,7 +2455,7 @@ function BossTick(En, Dt){
  En.AbT = (En.AbT ?? 3) - Dt;
  if(En.AbT > 0 || En.SlamT > 0 || En.Tele > 0 || En.SpinT > 0) return;
  const List = BossSets[En.Boss]; if(!List) return;
- En.AbI = ((En.AbI ?? -1) + 1) % List.length; const A = List[En.AbI]; En.AbT = Ph2 ? 2.6 : 4.2; En.Cast = A.toUpperCase();
+ En.AbI = ((En.AbI ?? -1) + 1) % List.length; const A = List[En.AbI]; En.AbT = (Ph2 ? 2.6 : 4.2) * RunDiff().Boss; En.Cast = A.toUpperCase();
  const N = Ph2 ? 22 : 14;
  if(A === 'charge'){En.Tele = .8; En.BaseSp = En.Speed; En.Speed = 0}
  else if(A === 'slam') En.SlamT = .9;
@@ -2496,7 +2508,7 @@ async function CloudPush(Force){
   const M = await FbLoad();
   await M.F.setDoc(M.F.doc(M.db, 'players', Acct.uid), {Name: Acct.name, Data, Sig: CloudSig(Data), Epoch: DataEpoch, Updated: Date.now()});
   CloudSnap = Data; CloudLast = Date.now(); CloudState = 'Synced ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
- }catch(Err){CloudState = 'Sync failed: ' + (Err.code || Err.message)}
+ }catch(Err){CloudState = 'Sync failed: ' + FbErr(Err)}
  CloudBusy = false; RefreshAcct();
 }
 async function CloudPull(){
@@ -2524,7 +2536,7 @@ async function FbInit(){
    GateResolve(true); const Prev = StorageGet('ShapeSwarmUid');
    if(Prev && Prev !== U.uid) WipeLocal();
    StorageSet('ShapeSwarmUid', U.uid); CloudState = 'Syncing…'; RefreshAcct();
-   try{await CloudPull()}catch(Err){CloudState = 'Sync failed: ' + (Err.code || Err.message)}
+   try{await CloudPull()}catch(Err){CloudState = 'Sync failed: ' + FbErr(Err)}
    RefreshAcct();
   });
  }catch(Err){CloudState = 'Could not load Firebase (offline?)'; RefreshAcct(); GateResolve(false, 'Could not reach the sign-in service. Check your connection, or play as guest.')}
@@ -2574,7 +2586,7 @@ async function BoardLoad(Force){
    if(Me.exists()){Board.Mine = Me.data(); const C = await M.F.getCountFromServer(M.F.query(Col, M.F.where('score', '>', Board.Mine.score))); Board.Rank = C.data().count + 1}
   }
   Board.At = Date.now();
- }catch(Err){Board.Err = Err.code || Err.message}
+ }catch(Err){Board.Err = FbErr(Err)}
  Board.Loading = false; MenuOnly();
 }
 function BoardEnsure(){if(FbReady && !Board.Loading && !Board.Err && (!Board.Rows || Date.now() - Board.At > 30000)) BoardLoad(false)}
@@ -2587,21 +2599,21 @@ function BoardHtml(){
  else if(!Board.Rows.length) Body = '<div class="Note">No scores yet. Be the first!</div>';
  else Body = Board.Rows.map((R, I) => `<div class="BRow ${Acct && R.uid === Acct.uid ? 'Me' : ''} R${I + 1}"><span class="BRank">${I + 1}</span><span class="BName">${/^https:/.test(R.photo || '') ? `<img alt="" referrerpolicy="no-referrer" src="${HtmlEsc(R.photo)}">` : ''}${HtmlEsc(R.name || 'Player')}</span><span class="BScore">${FormatTime(R.score)}${R.mult > 1 ? `<small>×${R.mult}</small>` : ''}</span></div>`).join('');
  const Foot = !FbReady ? '' : Acct ? (Board.Mine ? `<div class="BMine">You: #${Board.Rank} · ${FormatTime(Board.Mine.score)}</div>` : '<div class="BMine">Finish a run to get ranked.</div>') : '<button class="JoinBtn" data-act="signin">Sign in to get ranked</button>';
- return `<div class="PTitle">Global ranking <b style="float:right;color:var(--Amber)">time × mutator bonus</b></div><div class="PGrid3">${Chips}</div><div class="BList WsScroll">${Body}</div>${Foot}`;
+ return `<div class="PTitle">Global ranking <b style="float:right;color:var(--Amber)">time × mutators × difficulty</b></div><div class="PGrid3">${Chips}</div><div class="BList WsScroll">${Body}</div>${Foot}`;
 }
-async function SubmitScore(ModeName, Time, Rd, Lv, Kl, MutN){
+async function SubmitScore(ModeName, Time, Rd, Lv, Kl, MutN, DiffName){
  if(!Acct || !FbReady || Time < 10) return null;
- const M = await FbLoad(), Mult = +(1 + .2 * MutN).toFixed(1), Score = Math.floor(Time * Mult);
+ const M = await FbLoad(), Mult = +((1 + .2 * MutN) * (DiffTbl[DiffName] || DiffTbl.Normal).Reward).toFixed(2), Score = Math.floor(Time * Mult);
  const Ref = M.F.doc(M.db, 'boards', ModeName, 'entries', Acct.uid), Old = await M.F.getDoc(Ref), OldScore = Old.exists() ? Old.data().score : 0;
- if(Score > OldScore) await M.F.setDoc(Ref, {uid: Acct.uid, name: Acct.name.slice(0, 30), photo: Acct.photo, score: Score, time: Math.floor(Time), mult: Mult, round: Rd, level: Lv, kills: Kl, Updated: Date.now()});
+ if(Score > OldScore) await M.F.setDoc(Ref, {uid: Acct.uid, name: Acct.name.slice(0, 30), photo: Acct.photo, score: Score, time: Math.floor(Time), mult: Mult, diff: DiffName || 'Normal', round: Rd, level: Lv, kills: Kl, Updated: Date.now()});
  const C = await M.F.getCountFromServer(M.F.query(M.F.collection(M.db, 'boards', ModeName, 'entries'), M.F.where('score', '>', Math.max(Score, OldScore))));
  Board.At = 0; return {rank: C.data().count + 1, best: Math.max(Score, OldScore)};
 }
 const GameOverV9 = GameOver;
 GameOver = function(W){
- const T = RunStats.Time, Rd = Round, Lv = Player.Level, Kl = RunStats.Kills, MN = Object.values(RM()).filter(Boolean).length, MK = ModeKey;
+ const T = RunStats.Time, Rd = Round, Lv = Player.Level, Kl = RunStats.Kills, MN = Object.values(RM()).filter(Boolean).length, MK = ModeKey, DK = (Player && Player.Diff) || SelDiff;
  GameOverV9(W);
- SubmitScore(MK, T, Rd, Lv, Kl, MN).then(R => {if(R){const E = Ui.querySelector('.Recap'); if(E) E.insertAdjacentHTML('beforeend', '<br>🌐 Global rank #' + R.rank + ' · ' + MK)}}).catch(() => {});
+ SubmitScore(MK, T, Rd, Lv, Kl, MN, DK).then(R => {if(R){const E = Ui.querySelector('.Recap'); if(E) E.insertAdjacentHTML('beforeend', '<br>🌐 Global rank #' + R.rank + ' · ' + MK)}}).catch(() => {});
 };
 Ui.addEventListener('click', Ev => {
  const B = Ev.target.closest('button'); if(!B || !B.dataset.bmode) return;
@@ -2644,6 +2656,90 @@ SignIn = async function(){
  if(!Acct && GateState === 'loading') GateShow('login', /failed/.test(CloudState) ? CloudState : '');
 };
 if(FbReady){GateShow('loading'); setTimeout(() => {if(GateState === 'loading') GateShow('login', 'Could not reach the sign-in service. Check your connection, or play as guest.')}, 9000)}
+
+/* ---------- v10: difficulties, create-run screen, round events, loot goblins ---------- */
+const DiffTbl = {
+ Easy: {Pressure: .78, Hp: .85, Speed: .92, Dmg: .7, Trait: .5, Boss: 1.25, Reward: .5, Shards: .6, Color: '#7dffa6', Info: 'Relaxed. Weaker, slower enemies.'},
+ Normal: {Pressure: 1, Hp: 1, Speed: 1, Dmg: 1, Trait: 1, Boss: 1, Reward: 1, Shards: 1, Color: '#4ff0d6', Info: 'The intended challenge.'},
+ Hard: {Pressure: 1.2, Hp: 1.1, Speed: 1.04, Dmg: 1.3, Trait: 1.6, Boss: .8, Reward: 1.5, Shards: 1.3, Color: '#ffc857', Info: 'Bigger waves, tougher foes, faster bosses.'},
+ Nightmare: {Pressure: 1.5, Hp: 1.25, Speed: 1.1, Dmg: 1.7, Trait: 2.4, Boss: .62, Reward: 2.5, Shards: 1.8, Color: '#ff5d73', Info: 'Brutal. Shields everywhere, relentless bosses.'}
+};
+let SelDiff = DiffTbl[StorageGet('GODiff')] ? StorageGet('GODiff') : 'Normal', SetupOpen = false;
+const RunDiff = () => DiffTbl[(Player && Player.Diff) || SelDiff] || DiffTbl.Normal;
+function FbErr(Err){return Err.code === 'permission-denied' ? 'permission denied. Publish the Firestore rules for this project and make sure the database is (default).' : (Err.code || Err.message)}
+const MutInfo = {Glass: ['Glass Cannon', 'Half max HP, +60% damage'], Heavy: ['Heavy Core', '-25% move speed, +35% damage'], Frenzy: ['Frenzy', '+50% fire rate, -25% max HP'], Swarm: ['Swarm', 'Waves grow 25% harder'], Fast: ['Fast Foes', 'Enemies move 25% faster'], Armored: ['Armored', 'Enemies +40% HP, you +30% XP'], Volatile: ['Volatile', 'Dying enemies blast you within 90px'], Elite: ['Elite Rush', 'A tough elite spawns every 25s'], Blood: ['Blood Pact', 'Drain 1.5% HP/s, heal 1.2% per kill'], NoRegen: ['No Regen', 'All health regeneration disabled']};
+
+function RenderSetup(){
+ Ui.className = 'On';
+ const MN = Object.values(Mut).filter(Boolean).length, D = DiffTbl[SelDiff], Rew = +(D.Reward * (1 + .2 * MN)).toFixed(2), MC = {Standard: '#4ff0d6', Quickplay: '#ffc857', Endless: '#9b7bff'};
+ const Modes_ = Object.keys(Modes).map(K => {const M = Modes[K]; return `<button class="Pick ModeCard ${K === SelMode ? 'Sel' : ''}" style="--Chip:${MC[K] || '#4ff0d6'}" data-mode="${K}"><span class="PBig">${M.Total ? M.Info : '∞'}</span><b class="PName">${K}</b><span class="PSub">${M.Total ? M.Total / M.RoundLen + ' rounds' : 'Until you fall'}</span><span class="PBest">${Best[K] ? 'Best ' + FormatTime(Best[K]) : 'No record yet'}</span></button>`}).join('');
+ const Diffs = Object.keys(DiffTbl).map(K => `<button class="Pick ${K === SelDiff ? 'Sel' : ''}" style="--Chip:${DiffTbl[K].Color}" data-diff="${K}"><span class="PName">${K}</span><span class="PSub">${DiffTbl[K].Info}</span><span class="PBest">Rewards ×${DiffTbl[K].Reward}</span></button>`).join('');
+ const Elems_ = ElemNames.map(N => {const E = Elems[N], P = E.Desc.split('. '); return `<button class="Pick ElemCard ${N === SelElem ? 'Sel' : ''}" style="--Chip:${E.Color}" data-elem="${N}"><span class="EGlyph">${ElemIcon(N, 22)}</span><span class="EText"><b class="PName">${N}</b><span class="PSub">${P[0]}</span><span class="PPerk">${(P[1] || '').replace(/\.$/, '')}</span></span></button>`}).join('');
+ const Muts = Object.keys(MutInfo).map(K => `<button class="Pick ${Mut[K] ? 'Sel' : ''}" style="--Chip:#ff5d73" data-mut="${K}"><span class="PName">${MutInfo[K][0]}</span><span class="PSub">${MutInfo[K][1]}</span></button>`).join('');
+ Ui.innerHTML = `<div class="Setup"><div class="SHead"><button class="Ghost" data-act="setupclose">← Back</button><h2>Create Run</h2></div>
+ <div class="SGrid"><div class="Panel"><div class="PTitle">1 · Mode</div><div class="PGrid3">${Modes_}</div></div>
+ <div class="Panel"><div class="PTitle">2 · Difficulty</div><div class="PGrid2">${Diffs}</div></div>
+ <div class="Panel SWide"><div class="PTitle">3 · Starting element</div><div class="PGrid4">${Elems_}</div></div>
+ <div class="Panel SWide"><div class="PTitle">4 · Mutators <b style="float:right;color:var(--Coral)">+20% rewards each</b></div><div class="PGrid5">${Muts}</div></div></div>
+ <div class="SFoot"><div class="SSum"><span><b>${SelMode}</b> · <b style="color:${D.Color}">${SelDiff}</b> · <b style="color:${Elems[SelElem].Color}">${SelElem}</b> · ${MN} mutator${MN === 1 ? '' : 's'}</span><small>Shards and ranking ×${Rew}</small></div><button class="PlayBtn" data-act="play"><span>▶</span>Start run</button></div></div>`;
+}
+Ui.addEventListener('click', Ev => {
+ const B = Ev.target.closest('button'); if(!B) return; const A = B.dataset.act;
+ if(A === 'setup'){SetupOpen = true; ShowMenu(); Ev.stopImmediatePropagation()}
+ else if(A === 'setupclose'){SetupOpen = false; ShowMenu(); Ev.stopImmediatePropagation()}
+ else if(B.dataset.diff){SelDiff = B.dataset.diff; StorageSet('GODiff', SelDiff); ShowMenu(); Ev.stopImmediatePropagation()}
+}, true);
+const NewRunV10 = NewRun;
+NewRun = function(){SetupOpen = false; NewRunV10(); EventKey = null; EventRound = 0; Meteor = []; GoblinT = 35};
+Canvas.addEventListener('wheel', Ev => {if(Mode !== 'play') return; Ev.preventDefault(); Settings.View = Clamp((Settings.View || 1) - Math.sign(Ev.deltaY) * .05, .6, 1.5); ApplySettings()}, {passive: false});
+
+/* round events + loot goblins */
+const Events = {
+ BloodMoon: {Name: 'Blood Moon', Sub: 'Enemies are faster, but XP is doubled', Color: '#ff5d73'},
+ Meteors: {Name: 'Meteor Storm', Sub: 'Watch the glowing circles and move!', Color: '#ffc857'},
+ Overcharge: {Name: 'Overcharge', Sub: '+30% fire rate, enemies +20% HP', Color: '#4ff0d6'},
+ Golden: {Name: 'Golden Hour', Sub: 'Loot goblins roam. Catch them for shards!', Color: '#ffd54a'}
+};
+let EventKey = null, EventRound = 0, Meteor = [], MeteorT = 2, GoblinT = 35;
+function SpawnGoblin(){
+ SpawnEnemy(0); const G = Enemies[Enemies.length - 1]; if(!G) return;
+ G.Goblin = true; G.Color = '#ffd54a'; G.MaxHp = G.Hp = G.MaxHp * 1.6 + 30; G.Damage = 0; G.Life = 14; G.BaseSpeed = G.Speed; G.Speed = 0;
+ FloatText(Player.X, Player.Y - 40, 'LOOT GOBLIN!', '#ffd54a');
+}
+const TraitTickV10 = TraitTick;
+TraitTick = function(Dt){
+ TraitTickV10(Dt);
+ if(EventRound !== Round){
+  EventRound = Round; Meteor = []; EventKey = (Round >= 2 && Math.random() < .55) ? Object.keys(Events)[Math.floor(Math.random() * 4)] : null;
+  if(EventKey) ShowBanner(Events[EventKey].Name, Events[EventKey].Sub, Events[EventKey].Color);
+ }
+ if(EventKey === 'Overcharge') Player.Cooldown -= Dt * .3;
+ if(EventKey === 'Meteors'){
+  MeteorT -= Dt;
+  if(MeteorT <= 0){MeteorT = RandRange(.8, 1.5) / Math.max(1, RunDiff().Pressure * .9); const J = Math.random() < .55 ? 90 : 320; Meteor.push({X: Clamp(Player.X + RandRange(-J, J), 40, Arena - 40), Y: Clamp(Player.Y + RandRange(-J, J), 40, Arena - 40), T: 1.1, R: 70})}
+ }
+ for(const M of Meteor){
+  M.T -= Dt;
+  if(M.T <= 0){
+   Ring(M.X, M.Y, '#ffc857', M.R * 1.3, .4); Burst(M.X, M.Y, '#ffc857', 18, 260, .5); Shake = Math.max(Shake, 6);
+   if(Math.hypot(Player.X - M.X, Player.Y - M.Y) < M.R) HurtPlayer(Math.round(10 * RunDiff().Dmg + Round));
+   for(const En of Enemies) if(En.Hp > 0 && En.SpawnLeft <= 0 && Math.hypot(En.X - M.X, En.Y - M.Y) < M.R + En.Radius) DamageEnemy(En, 30 + Round * 8, false, En.X - M.X, En.Y - M.Y, '#ffc857', 80);
+  }
+ }
+ Meteor = Meteor.filter(M => M.T > 0);
+ GoblinT -= Dt * (EventKey === 'Golden' ? 3 : 1);
+ if(GoblinT <= 0 && Round >= 2 && !Enemies.some(E => E.Goblin)){GoblinT = RandRange(45, 70); SpawnGoblin()}
+ for(const G of Enemies) if(G.Goblin && G.SpawnLeft <= 0){
+  const Dx = G.X - Player.X, Dy = G.Y - Player.Y, L = Math.hypot(Dx, Dy) || 1;
+  G.X = Clamp(G.X + Dx / L * 170 * Dt, 30, Arena - 30); G.Y = Clamp(G.Y + Dy / L * 170 * Dt, 30, Arena - 30); G.Life -= Dt;
+  if(G.Life <= 0){G.Hp = -1; Enemies = Enemies.filter(E => E !== G); FloatText(G.X, G.Y, 'ESCAPED', '#8f98c8')}
+ }
+};
+const KillEnemyV10 = KillEnemy;
+KillEnemy = function(En){
+ KillEnemyV10(En);
+ if(En.Goblin){GainXp(30 + Round * 6); Meta.Shards += 2; SaveMeta(); FloatText(En.X, En.Y - 20, '+2 ◆ LOOT!', '#ffd54a'); Burst(En.X, En.Y, '#ffd54a', 24, 300, .6); Ring(En.X, En.Y, '#ffd54a', 70, .4)}
+};
 
 /* ---------- attract mode: a live demo fights behind the menu ---------- */
 const Demo = {T: 0, Foes: [], Shots: [], Fx: [], Cd: 0, Spawn: 0, Aim: 0, Shot: 0, Kills: 0};
@@ -2716,7 +2812,7 @@ function DrawAttract(){
 
 /* menu gets a see-through layer so the demo shows behind it */
 const ShowMenuLive = ShowMenu;
-ShowMenu = function(){ShowMenuLive(); Ui.classList.add('Menu'); if(MenuTab === 'rank') BoardEnsure()};
+ShowMenu = function(){if(SetupOpen && Mode === 'menu'){RenderSetup(); return} ShowMenuLive(); Ui.classList.add('Menu'); if(MenuTab === 'rank') BoardEnsure()};
 
 for(const K of Object.keys(Modes)) SaveStore.Get(K);
 if(WasWiped) MenuNote = 'Fresh start: all previous data was reset. Sign in to keep your new progress online.';
