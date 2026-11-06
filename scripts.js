@@ -86,8 +86,9 @@ function PlayTone(Frequency, Duration = .07, Type = 'sine', Volume = .025, EndFr
  Gain.gain.exponentialRampToValueAtTime(.0001, Start + Duration);
  Osc.connect(Gain); Gain.connect(Audio.destination); Osc.start(Start); Osc.stop(Start + Duration + .015);
 }
+var Muting = false;
 function PlaySfx(Name){
- if(!SoundEnabled) return;
+ if(!SoundEnabled || Muting) return;
  switch(Name){
   case 'Shoot': PlayTone(620,.045,'triangle',.12,360); break;
   case 'Hit': {const Now = performance.now(); if(Now - LastHitSound < 65) return; LastHitSound = Now; PlayTone(230,.045,'square',.12,120); break}
@@ -318,11 +319,11 @@ function ObjectiveTick(Dt){
  if(Obj.Done) return;
  if(Obj.Type === 'slay') Obj.Have = ObjKills;
  if(Obj.Type === 'gather'){
-  for(const C of Crystals) if(!C.Got && Math.hypot(C.X - Player.X, C.Y - Player.Y) < PlayerRadius + 14){C.Got = true; Obj.Have++; Burst(C.X, C.Y, '#4ff0d6', 14, 160, .5); Ring(C.X, C.Y, '#4ff0d6', 50, .4)}
+  for(const C of Crystals) if(!C.Got && PartyNear(C.X, C.Y, PlayerRadius + 14)){C.Got = true; Obj.Have++; Burst(C.X, C.Y, '#4ff0d6', 14, 160, .5); Ring(C.X, C.Y, '#4ff0d6', 50, .4)}
  }
- if(Obj.Type === 'zone' && Math.hypot(Zone.X - Player.X, Zone.Y - Player.Y) < Zone.R) Obj.Have += Dt;
+ if(Obj.Type === 'zone' && PartyNear(Zone.X, Zone.Y, Zone.R)) Obj.Have += Dt;
  if(Obj.Have >= Obj.Need){
-  Obj.Done = true; Pending++; Crystals = []; Zone = null;
+  Obj.Done = true; Pending++; PartyBonus(); Crystals = []; Zone = null;
   Player.Hp = Math.min(Stats.MaximumHealth, Player.Hp + Stats.MaximumHealth * .25);
   ShowBanner('Objective complete', 'Bonus upgrade', '#ffc857');
   Ring(Player.X, Player.Y, '#ffc857', 90, .6);
@@ -389,7 +390,7 @@ function UpdateFx(Dt){
  Texts = Texts.filter(Tx => Tx.Life > 0);
  if(ActiveBanner){ActiveBanner.T += Dt; if(ActiveBanner.T > ActiveBanner.Max) ActiveBanner = null}
  if(Player){
-  Camera.X += (Player.X - Camera.X) * Math.min(1, Dt * 9); Camera.Y += (Player.Y - Camera.Y) * Math.min(1, Dt * 9);
+  const CT = CamT(); Camera.X += (CT.X - Camera.X) * Math.min(1, Dt * 9); Camera.Y += (CT.Y - Camera.Y) * Math.min(1, Dt * 9);
   HpView += (Player.Hp - HpView) * Math.min(1, Dt * 8);
  }
  if(Mode === 'dying'){DyingTime -= Dt; if(DyingTime <= 0) GameOver(false)}
@@ -476,7 +477,7 @@ function Volley(Target){
    X: Player.X, Y: Player.Y, Vx: Math.cos(Angle) * Speed, Vy: Math.sin(Angle) * Speed, Damage: Dmg, Elem: Name, Lv, Crit,
    Life: (Stats.Range + 40) / Speed, Pierce: Stats.Piercing + (Name === 'Wind' ? Math.floor((Lv + 1) / 2) : 0), Hit: [],
    Size: (Name === 'Earth' ? 6 : Name === 'Wind' ? 3 : 4) * (1 + Stats.ProjectileSize),
-   Knock: Stats.Knockback + (Name === 'Earth' ? 30 * Lv : 0)
+   Knock: Stats.Knockback + (Name === 'Earth' ? 30 * Lv : 0), Ow: CurOwner
   });
   LastElem = Name;
  }
@@ -525,15 +526,16 @@ Ui.addEventListener('click', Ev => {
  const Button = Ev.target.closest('button'); if(!Button) return;
  PlaySfx('Shop');
  const Data = Button.dataset;
+ if(IsGuest() && (Data.pick !== undefined || Data.act === 'reroll')){GuestPick(Data); return}
  if(Data.pick !== undefined && Mode === 'level'){
   ApplyOffer(Offers[+Data.pick]); Pending--;
   if(Pending > 0){Offers = RollOffers(); RenderLevel(true)}
-  else{Mode = 'play'; Ui.className = ''}
+  else{HostLevelDone()}
  }else if(Data.act === 'reroll' && Rerolls > 0){Rerolls--; Offers = RollOffers(); RenderLevel(true)}
  else if(Data.mode){SelMode = Data.mode; ShowMenu()}
  else if(Data.elem){SelElem = Data.elem; ShowMenu()}
  else if(Data.act === 'resume') Pause();
- else if(Data.act === 'menu'){Mode = 'menu'; Player = null; ShowMenu()}
+ else if(Data.act === 'menu'){if(Party.On) PartyLeave(); Mode = 'menu'; Player = null; ShowMenu()}
  else if(Data.act === 'play'){
   if(InputMode === 'touch'){
    try{document.documentElement.requestFullscreen().then(() => screen.orientation.lock('landscape')).catch(() => {})}catch(Err){}
@@ -581,7 +583,7 @@ const WS = Workshop.map(W => {const L = Meta.Up[W.Key] || 0, C = WorkshopCost(L,
   <div class="Glyphs Rise" style="--d:0">${Glyphs}</div>
   <h1 class="Rise" style="--d:1">Geometrical<br>Onslaught</h1>
   <p class="Lead Rise" style="--d:2">Master Fire, Water, Earth and Wind. Every round has an objective: complete it for a bonus upgrade, fail it and lose health.</p>
-  <div class="Rise" style="--d:3"><button class="PlayBtn" data-act="setup"><span>▶</span>Play</button>${ContinueHtml()}<div><button class="Ghost" data-act="play" style="margin:10px 0 0">⚡ Quick start · ${SelMode} · ${SelDiff} · ${SelElem}</button></div></div>
+  <div class="Rise" style="--d:3"><div class="PlayRow"><button class="PlayBtn" data-act="setup"><span>▶</span>Singleplayer</button><button class="PlayBtn Alt" data-act="mp"><span>👥</span>Multiplayer</button></div>${ContinueHtml()}<div><button class="Ghost" data-act="play" style="margin:10px 0 0">⚡ Quick start · ${SelMode} · ${SelDiff} · ${SelElem}</button></div></div>
   <div class="Loadout Rise" style="--d:4"><b>${SelMode}</b> · starting with <b style="color:${Elems[SelElem].Color}">${SelElem}</b>${Bst}</div>
   ${JoinCard()}
   ${MenuNote ? '<div class="Note">' + MenuNote + '</div>' : ''}
@@ -961,7 +963,7 @@ Canvas.addEventListener('pointerdown', Ev => {
  const B = AimBtn();
  if(Ev.clientX >= B.X && Ev.clientX <= B.X + B.W && Ev.clientY >= B.Y && Ev.clientY <= B.Y + B.H){AutoAim = !AutoAim; return}
  const Gr = GearBtn();
- if(InputMode === 'touch' && Ev.clientX >= Gr.X && Ev.clientX <= Gr.X + Gr.W && Ev.clientY >= Gr.Y && Ev.clientY <= Gr.Y + Gr.H){Joys.Move = null; Joys.Aim = null; Pause(); if(Mode === 'pause') RenderSettings(); return}
+ if(InputMode === 'touch' && Ev.clientX >= Gr.X && Ev.clientX <= Gr.X + Gr.W && Ev.clientY >= Gr.Y && Ev.clientY <= Gr.Y + Gr.H){Joys.Move = null; Joys.Aim = null; Pause(); if(Mode === 'pause' || Party.MenuOpen) RenderSettings(); return}
  if(Ev.pointerType === 'mouse' && Ev.button === 0) Trigger = true;
  if(InputMode !== 'touch') return;
  for(const [N, X, Y] of TouchBtns()) if(Math.hypot(Ev.clientX - X, Ev.clientY - Y) < 36){N === 'Dash' ? Dash() : Nova(); return}
@@ -1003,12 +1005,12 @@ function Update(Dt){
  let Mx = (Keys['d'] || Keys['arrowright'] ? 1 : 0) - (Keys['a'] || Keys['arrowleft'] ? 1 : 0), My = (Keys['s'] || Keys['arrowdown'] ? 1 : 0) - (Keys['w'] || Keys['arrowup'] ? 1 : 0);
  if(Joys.Move){Mx += Joys.Move.Dx / JoyRadius; My += Joys.Move.Dy / JoyRadius}
  let Len = Math.hypot(Mx, My); if(Len > 1){Mx /= Len; My /= Len; Len = 1}
- const Speed = EffSpeed();
+ const Speed = Player.Down ? 0 : EffSpeed();
  Player.X = Clamp(Player.X + (Mx * Speed + Player.KnockX) * Dt, PlayerRadius, Arena - PlayerRadius);
  Player.Y = Clamp(Player.Y + (My * Speed + Player.KnockY) * Dt, PlayerRadius, Arena - PlayerRadius);
  Player.KnockX *= Math.max(0, 1 - 9 * Dt); Player.KnockY *= Math.max(0, 1 - 9 * Dt);
  Player.Inv -= Dt; Player.Recoil = Math.max(0, Player.Recoil - Dt * 8);
- Player.Hp = Math.min(Stats.MaximumHealth, Player.Hp + Stats.Regeneration * Dt);
+ Player.Hp = Player.Down ? 0 : Math.min(Stats.MaximumHealth, Player.Hp + Stats.Regeneration * Dt);
  if(Len > .2 && Math.random() < .6 && Particles.length < ParticleCap) Particles.push({X: Player.X - Mx * 10, Y: Player.Y - My * 10, Vx: -Mx * 30, Vy: -My * 30, Life: .3, MaxLife: .3, Color: Elems[LastElem].Color, Size: 2});
 
  /* round flow */
@@ -1036,7 +1038,7 @@ function Update(Dt){
  /* auto-aim fires by itself when something is in range; manual aim fires only while you hold the trigger */
  const Holding = InputMode === 'touch' ? !!(Joys.Aim && Math.hypot(Joys.Aim.Dx, Joys.Aim.Dy) > 10) : (Trigger || !!Keys[' ']);
  Firing = AutoAim ? !!Target : Holding;
- if(Player.Cooldown <= 0 && Firing) Volley(Target);
+ if(Player.Cooldown <= 0 && Firing && !Player.Down) Volley(Target);
 
  /* enemies */
  for(const En of Enemies){
@@ -1048,7 +1050,7 @@ function Update(Dt){
    if(En.Burn.T <= 0) En.Burn = null;
   }
   En.SlowT -= Dt; En.StunT -= Dt;
-  const Dx = Player.X - En.X, Dy = Player.Y - En.Y, Dist = Math.hypot(Dx, Dy) || 1;
+  const Tg = NearT(En.X, En.Y), Dx = Tg.X - En.X, Dy = Tg.Y - En.Y, Dist = Math.hypot(Dx, Dy) || 1;
   let Spd = En.Speed * (En.SlowT > 0 ? 1 - En.SlowPct : 1);
   if(En.StunT > 0) Spd = 0;
   if(En.Kind === 3){if(Dist < 170) Spd = -Spd * .7; else if(Dist < 230) Spd = 0}
@@ -1088,6 +1090,7 @@ function Update(Dt){
    A.X -= Dx / Dist * Over * (1 - PlayerShare); A.Y -= Dy / Dist * Over * (1 - PlayerShare);
   }
  }
+ PartyContact();
  if(Mode === 'dying') return;
 
  /* bolts */
@@ -1096,12 +1099,13 @@ function Update(Dt){
   for(const En of Enemies){
    if(En.SpawnLeft > 0 || En.Hp <= 0 || Bt.Hit.includes(En) || Math.hypot(En.X - Bt.X, En.Y - Bt.Y) >= En.Radius + Bt.Size) continue;
    Bt.Hit.push(En); DamageEnemy(En, Bt.Damage, Bt.Crit, Bt.Vx, Bt.Vy, Elems[Bt.Elem].Color, Bt.Knock);
+   const OR = Bt.Ow ? RemoteBy(Bt.Ow) : null, OS = OR ? OR.S : Stats, OP = OR ? OR.P : Player;
    ApplyElement(En, Bt);
-   if(Stats.Lifesteal) Player.Hp = Math.min(Stats.MaximumHealth, Player.Hp + Bt.Damage * Stats.Lifesteal);
-   if(Stats.BlastRadius){
-    Ring(En.X, En.Y, Elems[Bt.Elem].Color, Stats.BlastRadius, .25);
+   if(OS.Lifesteal) OP.Hp = Math.min(OS.MaximumHealth, OP.Hp + Bt.Damage * OS.Lifesteal);
+   if(OS.BlastRadius){
+    Ring(En.X, En.Y, Elems[Bt.Elem].Color, OS.BlastRadius, .25);
     for(const Other of Enemies){
-     if(Other !== En && Other.Hp > 0 && Other.SpawnLeft <= 0 && Math.hypot(Other.X - En.X, Other.Y - En.Y) < Stats.BlastRadius + Other.Radius) DamageEnemy(Other, Bt.Damage * .5, false, Other.X - En.X, Other.Y - En.Y, undefined, Stats.Knockback);
+     if(Other !== En && Other.Hp > 0 && Other.SpawnLeft <= 0 && Math.hypot(Other.X - En.X, Other.Y - En.Y) < OS.BlastRadius + Other.Radius) DamageEnemy(Other, Bt.Damage * .5, false, Other.X - En.X, Other.Y - En.Y, undefined, OS.Knockback);
     }
    }
    if(Bt.Pierce <= 0){Bt.Life = 0; break}
@@ -1110,7 +1114,7 @@ function Update(Dt){
  }
  for(const Eb of EnemyBolts){
   Eb.X += Eb.Vx * Dt; Eb.Y += Eb.Vy * Dt; Eb.Life -= Dt;
-  if(Math.hypot(Eb.X - Player.X, Eb.Y - Player.Y) < PlayerRadius){HurtPlayer(Eb.Damage); Eb.Life = 0}
+  if(Math.hypot(Eb.X - Player.X, Eb.Y - Player.Y) < PlayerRadius){HurtPlayer(Eb.Damage); Eb.Life = 0} else PartyBolt(Eb)
  }
  if(Mode === 'dying') return;
  Enemies = Enemies.filter(En => En.Hp > 0);
@@ -1120,9 +1124,9 @@ function Update(Dt){
  /* experience orbs */
  for(const Pk of Pickups){
   Pk.X += Pk.Vx * Dt; Pk.Y += Pk.Vy * Dt; Pk.Vx *= 1 - 5 * Dt; Pk.Vy *= 1 - 5 * Dt;
-  const Dx = Player.X - Pk.X, Dy = Player.Y - Pk.Y, Dist = Math.hypot(Dx, Dy) || 1;
-  if(Dist < Stats.PickupRange){Pk.X += Dx / Dist * 340 * Dt; Pk.Y += Dy / Dist * 340 * Dt}
-  if(Dist < PlayerRadius + 4){GainXp(Pk.Value); Pk.Value = 0; Burst(Player.X, Player.Y, '#4ff0d6', 3, 90, .3)}
+  const Tg = NearT(Pk.X, Pk.Y), Dx = Tg.X - Pk.X, Dy = Tg.Y - Pk.Y, Dist = Math.hypot(Dx, Dy) || 1;
+  if(Dist < Tg.S.PickupRange){Pk.X += Dx / Dist * 340 * Dt; Pk.Y += Dy / Dist * 340 * Dt}
+  if(Dist < PlayerRadius + 4){GainXp(Pk.Value); Pk.Value = 0; Burst(Tg.X, Tg.Y, '#4ff0d6', 3, 90, .3)}
  }
  Pickups = Pickups.filter(Pk => Pk.Value > 0);
  if(Pending > 0 && Mode === 'play') OpenLevel();
@@ -1218,7 +1222,8 @@ function Draw(){
   else{Context.fillStyle = Pt.Color; Context.beginPath(); Context.arc(Pt.X, Pt.Y, Pt.Size * (.4 + .6 * Fade), 0, Tau); Context.fill()}
  }
  Context.globalAlpha = 1;
- if(Mode !== 'dying' && !(Player.Inv > 0 && Math.floor(Player.Inv * 24) % 2)){
+ DrawParty();
+ if(Mode !== 'dying' && !Player.Down && !(Player.Inv > 0 && Math.floor(Player.Inv * 24) % 2)){
   const Pulse = Math.sin(Time * 5) * .8, Core = Elems[LastElem].Color;
   if(Mode === 'play'){
    Context.globalAlpha = .12 + .04 * Math.sin(Time * 3); Context.strokeStyle = Core; Context.lineWidth = 1; Poly(Player.X, Player.Y, Stats.Range, 0); Context.stroke();
@@ -1271,6 +1276,7 @@ function DrawHud(){
  Context.textAlign = 'left'; Context.font = '700 17px "Chakra Petch",sans-serif'; Context.fillText('Round ' + Round + (Rounds ? '/' + Rounds : ''), 16, BarY + 14);
  Context.fillStyle = Obj.Done ? '#1eff00' : '#ffc857'; Context.font = '700 13px "Chakra Petch",sans-serif'; Context.fillText(ObjectiveText(), 16, BarY + 32);
  Context.fillStyle = '#4ff0d6'; Context.fillText('Lv ' + Player.Level, 16, BarY + 50);
+ DrawPartyHud(BarY);
  const Dc = Math.max(0, Player.DashCd || 0);
  Context.fillStyle = '#ffffff22'; Context.fillRect(16, BarY + 58, 64, 4);
  Context.fillStyle = Dc > 0 ? '#8f98c8' : '#4ff0d6'; Context.fillRect(16, BarY + 58, 64 * (1 - Dc / DashMax()), 4);
@@ -1359,7 +1365,8 @@ function Loop(Stamp){
  const Blocked = InputMode === 'touch' && Height > Width;
  if(Player){
   UpdateFx(Dt); HitStop -= Dt; PerfAvg = PerfAvg * .96 + Dt * .04; ParticleCap = Settings.Reduce ? 90 : PerfAvg > .026 ? 140 : [120, 220, 350][Settings.Quality ?? 2];
-  if(Mode === 'play' && !Blocked && HitStop <= 0){Update(Dt); BoltFx(Dt); TraitTick(Dt)}
+  if(Party.On && Party.Ready) PartyFrame(Dt, Blocked);
+  else if(Mode === 'play' && !Blocked && HitStop <= 0){Update(Dt); BoltFx(Dt); TraitTick(Dt)}
  }else AttractUpdate(Dt);
  Draw();
 }
@@ -1604,7 +1611,7 @@ if(typeof UpdateDifficulty === 'function'){const UpdateDifficultyV4 = UpdateDiff
 function RenderPause(){
  const Chips = ElemNames.filter(N => Elem[N]).map(N => `<span class="PChip" style="color:${Elems[N].Color}">${ElemIcon(N, 14)} ${N} Lv ${Elem[N]}</span>`).join('');
  Ui.className = 'On';
- Ui.innerHTML = `<div class="Box"><div class="Panel"><h2>Paused</h2><p>Round ${Round} · ${ObjectiveText()}</p><div class="Chips" style="margin:8px 0 14px">${Chips}</div><div class="Row"><button class="PlayBtn" style="font-size:20px;padding:10px 28px;min-height:48px;animation:none" data-act="resume">Resume</button><button class="Btn Alt" data-act="restart">Restart</button><button class="Btn Alt" data-act="settings">Settings</button><button class="Btn Alt" data-act="menu">Quit to menu</button></div>${StatsHtml()}</div></div>`;
+ Ui.innerHTML = `<div class="Box"><div class="Panel"><h2>Paused</h2><p>Round ${Round} · ${ObjectiveText()}</p><div class="Chips" style="margin:8px 0 14px">${Chips}</div><div class="Row"><button class="PlayBtn" style="font-size:20px;padding:10px 28px;min-height:48px;animation:none" data-act="resume">Resume</button>${Party.On ? '' : '<button class="Btn Alt" data-act="restart">Restart</button>'}<button class="Btn Alt" data-act="settings">Settings</button><button class="Btn Alt" data-act="menu">Quit to menu</button></div>${StatsHtml()}</div></div>`;
 }
 const PauseV4 = Pause;
 Pause = function(){PauseV4(); if(Mode === 'pause') RenderPause()};
@@ -1616,7 +1623,7 @@ Ui.addEventListener('click', Ev => {
  if(D.mut){Mut[D.mut] = !Mut[D.mut]; StorageSet('ShapeSwarmMut', JSON.stringify(Mut)); ShowMenu(); Stop()}
  else if(D.tog){Settings[D.tog] = !Settings[D.tog]; ApplySettings(); RenderSettings(); Stop()}
  else if(D.act === 'settings'){RenderSettings(); Stop()}
- else if(D.act === 'back'){Mode === 'pause' ? RenderPause() : ShowMenu(); Stop()}
+ else if(D.act === 'back'){(Mode === 'pause' || Party.MenuOpen) ? RenderPause() : ShowMenu(); Stop()}
  else if(D.act === 'restart'){NewRun(); Stop()}
 
 }, true);
@@ -1685,8 +1692,8 @@ HurtPlayer = function(A, S){const H0 = Player ? Player.Hp : 0; HurtPlayerV6(A, S
 let BgLast = performance.now();
 setInterval(() => {
  const Now = performance.now(); let D = Math.min(8, (Now - BgLast) / 1000); BgLast = Now;
- if(!document.hidden || !Settings.Bg || Mode !== 'play' || !Player) return;
- while(D > 0 && Mode === 'play'){const St = Math.min(.05, D); Update(St); TraitTick(St); D -= St}
+ if(!document.hidden || !Settings.Bg || Mode !== 'play' || !Player || IsGuest()) return;
+ while(D > 0 && Mode === 'play'){const St = Math.min(.05, D); Update(St); TraitTick(St); if(Party.On && Party.Ready) PartyHostTick(St); D -= St}
 }, 250);
 
 /* your bolts can destroy enemy shots; earth smashes them without being used up */
@@ -1826,7 +1833,7 @@ const FirebaseConfig = {
 };
 /* providers: any of google, github, password (each must be enabled in Firebase Authentication).
    appCheckSiteKey: optional reCAPTCHA v3 site key to stop other sites/bots from using your Firebase project. */
-const FirebaseOptions = {providers: ['google', 'github', 'password'], appCheckSiteKey: ''};
+const FirebaseOptions = {providers: ['google', 'github', 'password'], appCheckSiteKey: '', turnServers: []};
 const FbReady = !!(FirebaseConfig.apiKey && FirebaseConfig.projectId);
 const FbBase = 'https://www.gstatic.com/firebasejs/10.14.1/';
 let Fb = null, Acct = null, CloudState = '', CloudLast = 0, CloudSnap = '', CloudBusy = false;
@@ -1840,7 +1847,7 @@ async function FbLoad(){
  if(FirebaseOptions.appCheckSiteKey){const AC = await import(FbBase + 'firebase-app-check.js'); AC.initializeAppCheck(App, {provider: new AC.ReCaptchaV3Provider(FirebaseOptions.appCheckSiteKey), isTokenAutoRefreshEnabled: true})}
  return Fb = {Au, F, auth: Au.getAuth(App), db: F.getFirestore(App)};
 }
-function CloudSnapshot(){const Saves = {}; for(const K of Object.keys(Modes)){const S = SaveStore.Get(K); if(S && ValidSave(S)) Saves[K] = S} return {V: 1, Best, Saves, Meta}}
+function CloudSnapshot(){const Saves = {}; for(const K of Object.keys(Modes)){const S = SaveStore.Get(K); if(S && ValidSave(S)) Saves[K] = S} return {V: 1, Best, Saves, Meta, Parties: PartySaves()}}
 function WipeLocal(){
  Best = {}; StorageSet('ShapeSwarmBest2', '{}'); Meta = {Shards: 0, Up: {}, Stamp: 0}; SaveMeta();
  for(const K of Object.keys(Modes)) SaveStore.Set(K, null);
@@ -1872,6 +1879,7 @@ async function CloudPull(){
   const L = SaveStore.Get(K), R = C.Saves[K];
   if(ValidSave(R) && (!ValidSave(L) || (R.RunStats.Time || 0) > (L.RunStats.Time || 0))) SaveStore.Set(K, R);
  }
+ if(C.Parties){const Mine = PartySaves(); let Ch = false; for(const I in C.Parties) if(!Mine[I] || (C.Parties[I].Updated || 0) > (Mine[I].Updated || 0)){Mine[I] = C.Parties[I]; Ch = true} if(Ch) StorageSet('GOParties', JSON.stringify(Mine))}
  CloudSnap = ''; await CloudPush(true);
 }
 let Wiping = false, DiagText = '', NickMsg = '', DelMsg = '';
@@ -2177,6 +2185,536 @@ KillEnemy = function(En){
  if(En.Goblin){GainXp(30 + Round * 6); Meta.Shards += 2; SaveMeta(); FloatText(En.X, En.Y - 20, '+2 ◆ LOOT!', '#ffd54a'); Burst(En.X, En.Y, '#ffd54a', 24, 300, .6); Ring(En.X, En.Y, '#ffd54a', 70, .4)}
 };
 
+/* ---------- v11: multiplayer — party-based online co-op (host-authoritative, WebRTC) ----------
+   The host runs the whole game for up to 4 players; guests send inputs and draw what the host sends.
+   Lobby + connection handshake go through Firestore (parties/{code} and parties/{code}/peers/{uid}).        */
+const Party = {On: false, Host: false, Ready: false, View: '', Code: '', Id: '', Cfg: null, State: 'idle', Members: [], Remotes: [], Conns: {}, Guest: null, Msg: '', List: [], Unsub: [], Handled: {}, Reserved: null, Save: null, Names: {}, Others: [], Evs: [], MenuOpen: false, SnapT: 0, InT: 0, EnId: 1, NovaReq: 0, Wait: false, Timer: null, Locks: [], Answered: false, Lobby: null};
+const IsGuest = () => Party.On && !Party.Host;
+const SafeName = T => String(T || '').replace(/[^A-Za-z0-9 _.\-]/g, '').trim().slice(0, 16) || 'Player';
+const CodeChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const MakeCode = () => Array.from({length: 6}, () => CodeChars[Math.floor(Math.random() * CodeChars.length)]).join('');
+const IceCfg = () => ({iceServers: window.__ICE || [{urls: 'stun:stun.cloudflare.com:3478'}].concat(FirebaseOptions.turnServers || [])});
+const CleanUp = U => {const O = {}; for(const W of Workshop){const V = U && Number.isFinite(U[W.Key]) ? Math.floor(U[W.Key]) : 0; if(V > 0) O[W.Key] = Math.min(W.Max || 5, V)} return O};
+const FreshCfg = () => ({name: (Acct ? PublicName() : 'My') + ' party', public: false, max: 4, mode: SelMode, diff: SelDiff, mut: Object.assign({}, Mut)});
+
+/* ----- multi-target helpers used by the patched simulation ----- */
+function NearT(X, Y){
+ let B = null, BD = 1e12;
+ if(!Player.Down){B = {X: Player.X, Y: Player.Y, S: Stats, Host: true}; BD = (Player.X - X) ** 2 + (Player.Y - Y) ** 2}
+ for(const R of Party.Remotes){if(!R.Alive) continue; const D = (R.P.X - X) ** 2 + (R.P.Y - Y) ** 2; if(D < BD){BD = D; B = {X: R.P.X, Y: R.P.Y, S: R.S, R}}}
+ return B || {X: Player.X, Y: Player.Y, S: Stats, Host: true};
+}
+const PartyNear = (X, Y, Rad) => (!Player.Down && Math.hypot(X - Player.X, Y - Player.Y) < Rad) || Party.Remotes.some(Q => Q.Alive && Math.hypot(X - Q.P.X, Y - Q.P.Y) < Rad);
+const RemoteBy = U => Party.Remotes.find(R => R.Uid === U) || null;
+const CamT = () => Player.Down ? ((Party.Host ? (Party.Remotes.find(R => R.Alive) || {}).P : Party.Others.find(O => O.Al)) || Player) : Player;
+var CurOwner = null;
+function AsPlayer(R, Fn){
+ const sP = Player, sS = Stats, sE = Elem, sL = LastElem, sA = Aim, sO = CurOwner, sM = Muting;
+ Player = R.P; Stats = R.S; Elem = R.E; LastElem = R.Last || LastElem; Aim = R.In.a || 0; CurOwner = R.Uid; Muting = true;
+ try{return Fn()}finally{R.Last = LastElem; Player = sP; Stats = sS; Elem = sE; LastElem = sL; Aim = sA; CurOwner = sO; Muting = sM}
+}
+function HurtRemote(R, Amount, Src){
+ if(!R.Alive || R.P.Inv > 0 || Mode !== 'play') return;
+ if(Math.random() < R.S.Evasion){R.P.Inv = .25; return}
+ const Def = AsPlayer(R, EffDefense), Taken = Math.max(1, Amount * (1 - Def / (Def + 25)));
+ R.P.Hp -= Taken; R.P.Inv = .5; Burst(R.P.X, R.P.Y, '#ff5d73', 6, 140, .35);
+ if(R.P.Hp <= 0){R.Alive = false; R.P.Hp = 0; Burst(R.P.X, R.P.Y, '#ff5d73', 30, 240, .7); Ring(R.P.X, R.P.Y, '#ff5d73', 80, .5); FloatText(R.P.X, R.P.Y - 30, R.Name + ' is down', '#ff5d73'); PartyCheckWipe()}
+}
+function PartyContact(){
+ if(!Party.Remotes.length) return;
+ for(const A of Enemies){if(A.SpawnLeft > 0) continue; for(const R of Party.Remotes) if(R.Alive && Math.hypot(R.P.X - A.X, R.P.Y - A.Y) < A.Radius + PlayerRadius + 2) HurtRemote(R, A.Damage, A)}
+}
+function PartyBolt(Eb){for(const R of Party.Remotes) if(R.Alive && Math.hypot(Eb.X - R.P.X, Eb.Y - R.P.Y) < PlayerRadius){HurtRemote(R, Eb.Damage); Eb.Life = 0; return}}
+function PartyBonus(){for(const R of Party.Remotes){R.Pending++; R.P.Hp = Math.min(R.S.MaximumHealth, R.P.Hp + R.S.MaximumHealth * .25)}}
+function PartyCheckWipe(){if(Party.On && Party.Host && Player.Down && !Party.Remotes.some(R => R.Alive)){Player.Down = false; Player.Hp = 1; PlayerDiePM()}}
+function ReviveAll(){
+ if(!(Party.On && Party.Host)) return;
+ if(Player.Down){Player.Down = false; Player.Hp = Stats.MaximumHealth * .5; Player.Inv = 2}
+ for(const R of Party.Remotes) if(!R.Alive){R.Alive = true; R.P.Hp = R.S.MaximumHealth * .5; R.P.Inv = 2}
+}
+const HurtPlayerPM = HurtPlayer;
+HurtPlayer = function(A, S){if(Player.Down) return false; return HurtPlayerPM(A, S)};
+const PlayerDiePM = PlayerDie;
+PlayerDie = function(){
+ if(Party.On && Party.Host && Party.Remotes.some(R => R.Alive)){Player.Down = true; Player.Hp = 0; Player.Inv = 99; Burst(Player.X, Player.Y, '#ff5d73', 30, 240, .7); Ring(Player.X, Player.Y, '#ff5d73', 80, .5); FloatText(Player.X, Player.Y - 30, 'DOWN', '#ff5d73'); return}
+ PlayerDiePM();
+};
+const GainXpPM = GainXp;
+GainXp = function(V){const P0 = Pending; GainXpPM(V); if(Party.On && Party.Host){const D = Pending - P0; if(D > 0) for(const R of Party.Remotes) R.Pending += D}};
+const OpenLevelPM = OpenLevel;
+OpenLevel = function(){OpenLevelPM(); if(Party.On && Party.Host) PartyOffers()};
+const StartRoundPM = StartRound;
+StartRound = function(){StartRoundPM(); if(Party.Ready){ReviveAll(); PartySaveNow()}};
+const ShowBannerPM = ShowBanner;
+ShowBanner = function(T, S, C){ShowBannerPM(T, S, C); if(Party.On && Party.Host && Party.Ready) PartyBroadcast({t: 'bn', a: [T, S, C]})};
+const KillEnemyPM = KillEnemy;
+KillEnemy = function(En){KillEnemyPM(En); if(Party.On && Party.Host && Party.Evs.length < 30) Party.Evs.push([Math.round(En.X), Math.round(En.Y), En.Color])};
+const ApplyElementPM = ApplyElement;
+ApplyElement = function(En, Bt){const R = Bt.Ow ? RemoteBy(Bt.Ow) : null; if(R) AsPlayer(R, () => ApplyElementPM(En, Bt)); else ApplyElementPM(En, Bt)};
+const UpdateDifficultyPM = UpdateDifficulty;
+UpdateDifficulty = function(){UpdateDifficultyPM(); if(Party.On && Party.Host) Diff *= 1 + .3 * Party.Remotes.length};
+const NovaCore = Nova;
+Nova = function(){
+ if(IsGuest()){
+  if(Mode !== 'play' || !Player || (Player.NovaCd || 0) > 0 || Player.Down) return;
+  Player.NovaCd = NovaMax(); Party.NovaReq++; Ring(Player.X, Player.Y, Elems[LastElem].Color, 200, .5); Shake = Math.max(Shake, 6); return;
+ }
+ NovaCore();
+};
+const PausePM = Pause;
+Pause = function(){
+ if(!Party.On) return PausePM();
+ if(Party.MenuOpen){Party.MenuOpen = false; Ui.className = ''} else if(Mode === 'play'){Party.MenuOpen = true; RenderPause()}
+};
+
+/* ----- level-ups: every player picks their own upgrade; the world waits for everyone ----- */
+function PartyOffers(){
+ for(const R of Party.Remotes) if(R.Pending > 0 && !R.Offers){R.Offers = AsPlayer(R, RollOffers); R.WaitT = 0; PartySend(R.Uid, {t: 'offers', o: R.Offers, p: R.Pending, rr: R.Rerolls, lv: Player.Level})}
+}
+function HostLevelDone(){
+ if(Party.On && Party.Host && Party.Remotes.some(R => R.Pending > 0)){
+  Party.Wait = true; Ui.className = 'On';
+  Ui.innerHTML = '<div class="Box"><h2>Waiting for your party…</h2><p>' + HtmlEsc(Party.Remotes.filter(R => R.Pending > 0).map(R => R.Name).join(', ')) + ' still choosing an upgrade.</p></div>'; return;
+ }
+ Party.Wait = false; Mode = 'play'; Ui.className = ''; if(Party.On && Party.Host) PartyBroadcast({t: 'resume'});
+}
+function HostPick(U, I){
+ const R = RemoteBy(U); if(!R || !R.Offers || !R.Offers[I] || R.Pending <= 0) return;
+ AsPlayer(R, () => ApplyOffer(R.Offers[I])); R.Pending--; R.Offers = null;
+ PartySend(U, {t: 'self', S: R.S, E: R.E, L: R.Last});
+ if(R.Pending > 0){R.Offers = AsPlayer(R, RollOffers); R.WaitT = 0; PartySend(U, {t: 'offers', o: R.Offers, p: R.Pending, rr: R.Rerolls, lv: Player.Level})}
+ else PartySend(U, {t: 'wait'});
+ if(Party.Wait && Pending <= 0) HostLevelDone();
+}
+function HostReroll(U){const R = RemoteBy(U); if(R && R.Offers && R.Rerolls > 0){R.Rerolls--; R.Offers = AsPlayer(R, RollOffers); PartySend(U, {t: 'offers', o: R.Offers, p: R.Pending, rr: R.Rerolls, lv: Player.Level})}}
+function PartyLevelTick(Dt){for(const R of Party.Remotes) if(R.Offers){R.WaitT += Dt; if(R.WaitT > 30) HostPick(R.Uid, 0)}}
+function GuestPick(D){
+ if(D.pick !== undefined){PartyGuestSend({t: 'pick', i: +D.pick}); Offers = []; Ui.className = 'On'; Ui.innerHTML = '<div class="Box"><h2>Upgrade chosen</h2><p>Waiting for the rest of the party…</p></div>'}
+ else if(D.act === 'reroll') PartyGuestSend({t: 'reroll'});
+}
+
+/* ----- networking: connections, messages ----- */
+function WaitIce(pc){return new Promise(Res => {if(pc.iceGatheringState === 'complete') return Res(); const T = setTimeout(Res, 3500); pc.addEventListener('icegatheringstatechange', () => {if(pc.iceGatheringState === 'complete'){clearTimeout(T); Res()}})})}
+function MakeConn(pc, Uid){
+ const C = {pc, Uid, ctl: null, dat: null, Known: new Set(), Last: performance.now(), Hello: false, Up: {}, Name: 'Player'};
+ C.Send = (O, Fast) => {const Ch = Fast && C.dat && C.dat.readyState === 'open' ? C.dat : C.ctl; if(!Ch || Ch.readyState !== 'open') return; if(Fast && Ch.bufferedAmount > 65536) return; try{Ch.send(JSON.stringify(O))}catch(Err){}};
+ return C;
+}
+function WireChannel(C, Ch, IsHost){
+ if(Ch.label === 'ctl') C.ctl = Ch; else C.dat = Ch;
+ Ch.onmessage = E => {C.Last = performance.now(); let M; try{M = JSON.parse(E.data)}catch(Err){return} IsHost ? HostMsg(C.Uid, M) : GuestMsg(M)};
+ Ch.onopen = () => {if(!IsHost && Ch.label === 'ctl') C.Send({t: 'hello', n: PublicName(), up: Meta.Up})};
+ Ch.onclose = () => {if(Ch.label === 'ctl'){if(IsHost) HostDrop(C.Uid); else if(Party.Guest === C) GuestLost('The host closed the connection.')}};
+}
+function PartySend(U, O, Fast){const C = Party.Conns[U]; if(C) C.Send(O, Fast)}
+function PartyBroadcast(O, Fast){for(const U in Party.Conns) Party.Conns[U].Send(O, Fast)}
+function PartyGuestSend(O, Fast){if(Party.Guest) Party.Guest.Send(O, Fast)}
+
+async function HostWatchPeers(){
+ const M = await FbLoad(), Col = M.F.collection(M.db, 'parties', Party.Code, 'peers');
+ Party.Unsub.push(M.F.onSnapshot(Col, Snap => {
+  for(const D of Snap.docs){
+   const X = D.data(), Key = D.id + ':' + (X.Updated || 0);
+   if(!X.offer || X.answer || Party.Handled[Key]) continue;
+   Party.Handled[Key] = true; HostAccept(D.id, X).catch(Err => {Party.Msg = 'Join failed: ' + (Err.message || Err); RenderParty()});
+  }
+ }));
+}
+async function HostAccept(Uid, X){
+ const M = await FbLoad(); if(Party.Conns[Uid]){try{Party.Conns[Uid].pc.close()}catch(Err){}}
+ const pc = new RTCPeerConnection(IceCfg()), C = MakeConn(pc, Uid); C.Name = SafeName(X.name); Party.Conns[Uid] = C;
+ pc.ondatachannel = E => WireChannel(C, E.channel, true);
+ pc.onconnectionstatechange = () => {if(pc.connectionState === 'failed') HostDrop(Uid)};
+ await pc.setRemoteDescription({type: 'offer', sdp: X.offer}); await pc.setLocalDescription(await pc.createAnswer()); await WaitIce(pc);
+ await M.F.updateDoc(M.F.doc(M.db, 'parties', Party.Code, 'peers', Uid), {answer: pc.localDescription.sdp, Updated: Date.now()});
+}
+const LockedElems = Except => {const S = new Set(Party.Members.filter(M => M.Uid !== Except).map(M => M.Elem)); if(Party.Reserved) for(const [U, E] of Party.Reserved) if(U !== Except && !Party.Members.some(M => M.Uid === U)) S.add(E); return S};
+const FreeElem = Uid => ElemNames.find(N => !LockedElems(Uid).has(N)) || null;
+function HostMsg(U, m){
+ const C = Party.Conns[U]; if(!C || !m) return;
+ if(m.t === 'hello'){
+  if(C.Hello) return; C.Hello = true; C.Up = CleanUp(m.up); C.Name = SafeName(m.n || C.Name);
+  const Res = Party.Reserved, Mem = Party.Members, Already = Mem.some(x => x.Uid === U);
+  let Why = '';
+  if(Party.State !== 'lobby') Why = 'This party already started.';
+  else if(!Already && Mem.length >= Party.Cfg.max) Why = 'This party is full.';
+  else if(!Already && Res && !Res.has(U) && Mem.filter(x => !Res.has(x.Uid)).length >= Party.Cfg.max - Res.size) Why = 'This saved party only has room for its original players.';
+  const El = Res && Res.has(U) ? Res.get(U) : FreeElem(U);
+  if(!Why && !El) Why = 'No elements are left.';
+  if(Why){C.Send({t: 'reject', why: Why}); setTimeout(() => HostDrop(U, true), 400); return}
+  if(!Already) Mem.push({Uid: U, Name: C.Name, Elem: El, Ready: false});
+  PartyLobbyChanged();
+ }
+ else if(m.t === 'elem'){const Mm = Party.Members.find(x => x.Uid === U); if(Mm && Party.State === 'lobby' && ElemNames.includes(m.e) && !(Party.Reserved && Party.Reserved.has(U)) && !LockedElems(U).has(m.e)){Mm.Elem = m.e; Mm.Ready = false; PartyLobbyChanged()}}
+ else if(m.t === 'ready'){const Mm = Party.Members.find(x => x.Uid === U); if(Mm && Party.State === 'lobby'){Mm.Ready = !!m.v; PartyLobbyChanged()}}
+ else if(m.t === 'leave') HostDrop(U);
+ else if(m.t === 'in'){const R = RemoteBy(U); if(R && Number.isFinite(m.x) && Number.isFinite(m.y)){const I = R.In; I.x = m.x; I.y = m.y; I.a = Number.isFinite(m.a) ? m.a : I.a; I.f = m.f ? 1 : 0; I.i = m.i ? 1 : 0; I.n = Number.isFinite(m.n) ? m.n : I.n}}
+ else if(m.t === 'pick') HostPick(U, m.i);
+ else if(m.t === 'reroll') HostReroll(U);
+}
+function HostDrop(U, Silent){
+ const C = Party.Conns[U]; if(C){try{C.pc.close()}catch(Err){} delete Party.Conns[U]}
+ const I = Party.Members.findIndex(x => x.Uid === U);
+ if(I >= 0 && !Silent){
+  Party.Members.splice(I, 1);
+  if(Party.State === 'play'){const R = RemoteBy(U); if(R){Party.Remotes = Party.Remotes.filter(x => x !== R); FloatText(Player.X, Player.Y - 40, R.Name + ' left', '#8f98c8'); if(Party.Wait && Pending <= 0) HostLevelDone()}}
+  else PartyLobbyChanged();
+ }
+}
+function PartyCfgPublic(){return {name: Party.Cfg.name, mode: Party.Cfg.mode, diff: Party.Cfg.diff, mut: Party.Cfg.mut, max: Party.Cfg.max, pub: Party.Cfg.public ? 1 : 0}}
+function PartyLobbyChanged(){
+ const Locks = Party.Reserved ? [...Party.Reserved].filter(([U]) => !Party.Members.some(M => M.Uid === U)).map(([U, E]) => E) : [];
+ Party.Lobby = {t: 'lobby', code: Party.Code, m: Party.Members.map(x => ({u: x.Uid, n: x.Name, e: x.Elem, r: x.Ready ? 1 : 0})), cfg: PartyCfgPublic(), lk: Locks, res: Party.Reserved ? 1 : 0};
+ PartyBroadcast(Party.Lobby); Party.Locks = Locks; RenderParty(); PartyDocPatch({count: Party.Members.length, expiresAt: Date.now() + 30 * 60e3});
+}
+async function PartyDocPatch(P){if(!Party.Host || !Party.Code || !Fb) return; try{await Fb.F.updateDoc(Fb.F.doc(Fb.db, 'parties', Party.Code), P)}catch(Err){}}
+const PartyDoc = () => ({code: Party.Code, hostUid: Acct.uid, hostName: PublicName(), name: Party.Cfg.name, public: !!Party.Cfg.public, mode: Party.Cfg.mode, diff: Party.Cfg.diff, mutN: Object.values(Party.Cfg.mut).filter(Boolean).length, max: Party.Cfg.max, count: Party.Members.length, state: 'lobby', resume: Party.Reserved ? 1 : 0, createdAt: Date.now(), expiresAt: Date.now() + 30 * 60e3});
+
+function PartyReady(){
+ if(!FbReady){Party.Msg = 'Online features are not set up yet.'; return false}
+ if(!Acct){Party.Msg = 'Sign in to play multiplayer.'; return false}
+ if(!Acct.verified){Party.Msg = 'Verify your email first (Account screen).'; return false}
+ return true;
+}
+async function PartyCreate(Save){
+ if(!PartyReady()){RenderParty(); return}
+ Party.Msg = 'Creating party…'; RenderParty();
+ try{
+  const M = await FbLoad();
+  try{const Old = await M.F.getDocs(M.F.query(M.F.collection(M.db, 'parties'), M.F.where('hostUid', '==', Acct.uid))); for(const D of Old.docs) await M.F.deleteDoc(M.F.doc(M.db, 'parties', D.id))}catch(Err){}
+  let Code = MakeCode(), T = 0; while(T++ < 5){const S = await M.F.getDoc(M.F.doc(M.db, 'parties', Code)); if(!S.exists()) break; Code = MakeCode()}
+  Party.Cfg = Party.Cfg || FreshCfg(); Party.Code = Code; Party.On = true; Party.Host = true; Party.State = 'lobby'; Party.Ready = false; Party.Handled = {}; Party.Conns = {}; Party.Remotes = []; Party.Save = Save || null;
+  Party.Id = Save ? Save.Id : 'P' + Date.now().toString(36); Party.Reserved = Save ? new Map(Save.Members.map(Mm => [Mm.Uid, Mm.Elem0])) : null;
+  const HostEl = Save && Party.Reserved.get(Acct.uid) ? Party.Reserved.get(Acct.uid) : SelElem;
+  Party.Members = [{Uid: Acct.uid, Name: PublicName(), Elem: HostEl, Ready: true, Host: true}];
+  await M.F.setDoc(M.F.doc(M.db, 'parties', Code), PartyDoc());
+  await HostWatchPeers(); Party.View = 'lobby'; Party.Msg = '';
+  clearInterval(Party.Timer); Party.Timer = setInterval(PartyWatch, 3000);
+  PartyLobbyChanged();
+ }catch(Err){Party.On = false; Party.Host = false; Party.Msg = 'Could not create the party: ' + FbErr(Err); Party.View = 'host'; RenderParty()}
+}
+async function GuestJoin(Code){
+ Code = String(Code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+ if(!PartyReady()){RenderParty(); return}
+ if(Code.length !== 6){Party.Msg = 'Enter the 6-character party code.'; RenderParty(); return}
+ Party.View = 'connecting'; Party.Msg = 'Connecting…'; RenderParty();
+ try{
+  const M = await FbLoad(), PS = await M.F.getDoc(M.F.doc(M.db, 'parties', Code));
+  if(!PS.exists()){Party.View = 'hub'; Party.Msg = 'No party with that code.'; RenderParty(); return}
+  const D = PS.data(); if(D.state !== 'lobby' || D.expiresAt < Date.now()){Party.View = 'hub'; Party.Msg = 'That party is not open.'; RenderParty(); return}
+  const pc = new RTCPeerConnection(IceCfg()), C = MakeConn(pc, D.hostUid);
+  Party.On = true; Party.Host = false; Party.Code = Code; Party.Guest = C; Party.Answered = false; Party.Names = {}; Party.Cfg = {name: D.name, mode: D.mode, diff: D.diff, mut: {}, max: D.max};
+  WireChannel(C, pc.createDataChannel('ctl'), false); WireChannel(C, pc.createDataChannel('dat', {ordered: false, maxRetransmits: 0}), false);
+  pc.onconnectionstatechange = () => {if(pc.connectionState === 'failed') GuestLost('Could not connect to the host.')};
+  await pc.setLocalDescription(await pc.createOffer()); await WaitIce(pc);
+  const Ref = M.F.doc(M.db, 'parties', Code, 'peers', Acct.uid);
+  await M.F.setDoc(Ref, {offer: pc.localDescription.sdp, name: PublicName(), Updated: Date.now()});
+  Party.Unsub.push(M.F.onSnapshot(Ref, async S => {if(S.exists() && S.data().answer && !Party.Answered){Party.Answered = true; try{await pc.setRemoteDescription({type: 'answer', sdp: S.data().answer})}catch(Err){}}}));
+  clearInterval(Party.Timer); Party.Timer = setInterval(PartyWatch, 3000);
+  setTimeout(() => {if(Party.Guest === C && !(C.ctl && C.ctl.readyState === 'open')) GuestLost('Could not connect. The host may be behind a strict network (a TURN relay would help).')}, 25000);
+ }catch(Err){GuestLost('Could not join: ' + FbErr(Err))}
+}
+function GuestLost(Why){
+ const Playing = Party.State === 'play'; PartyLeave(); Mode = 'menu'; Player = null; Party.View = 'hub'; Party.Msg = Why;
+ if(Playing) Ui.className = 'On'; ShowMenu();
+}
+function PartyWatch(){
+ const Now = performance.now();
+ if(Party.Host){for(const U in Party.Conns) if(Now - Party.Conns[U].Last > 14000) HostDrop(U); PartyBroadcast({t: 'ping'}); if(Party.Code && Date.now() - (Party.Beat || 0) > 480000){Party.Beat = Date.now(); PartyDocPatch({expiresAt: Date.now() + 30 * 60e3})}}
+ else if(Party.Guest){PartyGuestSend({t: 'ping'}); if(Now - Party.Guest.Last > 15000) GuestLost('Lost the connection to the host.')}
+}
+function PartyReset(){
+ clearInterval(Party.Timer);
+ Object.assign(Party, {On: false, Host: false, Ready: false, View: '', Code: '', Id: '', Cfg: null, State: 'idle', Members: [], Remotes: [], Conns: {}, Guest: null, Handled: {}, Unsub: [], Reserved: null, Save: null, Names: {}, Others: [], Evs: [], MenuOpen: false, Wait: false, Locks: [], Lobby: null, Answered: false, SnapT: 0, InT: 0});
+ if(Player) Player.Down = false;
+}
+function PartyLeave(){
+ const WasHost = Party.Host, Code = Party.Code;
+ for(const U in Party.Conns){try{Party.Conns[U].Send({t: 'reject', why: 'The host left the party.'}); Party.Conns[U].pc.close()}catch(Err){}}
+ if(Party.Guest){try{Party.Guest.Send({t: 'leave'}); Party.Guest.pc.close()}catch(Err){}}
+ for(const F of Party.Unsub){try{F()}catch(Err){}}
+ if(Fb && Code && Acct){try{if(WasHost) Fb.F.deleteDoc(Fb.F.doc(Fb.db, 'parties', Code)); else Fb.F.deleteDoc(Fb.F.doc(Fb.db, 'parties', Code, 'peers', Acct.uid))}catch(Err){}}
+ PartyReset();
+}
+addEventListener('pagehide', () => {if(Party.On && Party.Host && Fb && Party.Code){try{Fb.F.deleteDoc(Fb.F.doc(Fb.db, 'parties', Party.Code))}catch(Err){}}});
+
+/* ----- guest messages ----- */
+const GEn = new Map(), GStatic = new Map();
+function GuestMsg(m){
+ if(!m) return;
+ if(m.t === 'lobby'){Party.Lobby = m; Party.Members = m.m.map(x => ({Uid: x.u, Name: x.n, Elem: x.e, Ready: !!x.r})); Party.Cfg = Object.assign(Party.Cfg || {}, m.cfg, {public: !!m.cfg.pub}); Party.Locks = m.lk || []; Party.Names = Object.fromEntries(m.m.map(x => [x.u, x.n])); Party.State = 'lobby'; if(Mode === 'menu'){Party.View = 'lobby'; RenderParty()}}
+ else if(m.t === 'reject'){const W = m.why; PartyLeave(); Mode = 'menu'; Player = null; Party.View = 'hub'; Party.Msg = W || 'The host removed you.'; ShowMenu()}
+ else if(m.t === 'start') GuestBegin(m);
+ else if(m.t === 'ne'){for(const S of m.a) GStatic.set(S.i, {Radius: S.r, Kind: S.k, Color: S.c, Sides: S.s, MaxHp: S.mh, Elite: !!S.el, Boss: S.bs || undefined, Trait: S.tr || undefined, Goblin: !!S.gb, SpawnTotal: S.st})}
+ else if(m.t === 's') GuestSnap(m);
+ else if(m.t === 'offers'){Offers = m.o; Pending = m.p; Rerolls = m.rr; if(m.lv) Player.Level = m.lv; Mode = 'level'; Joys.Move = null; Joys.Aim = null; RenderLevel(true)}
+ else if(m.t === 'wait'){Ui.className = 'On'; Ui.innerHTML = '<div class="Box"><h2>Upgrade chosen</h2><p>Waiting for the rest of the party…</p></div>'}
+ else if(m.t === 'resume'){Mode = 'play'; Ui.className = ''}
+ else if(m.t === 'self'){Stats = m.S; Elem = m.E; if(m.L) LastElem = m.L}
+ else if(m.t === 'bn') ShowBannerPM(m.a[0], m.a[1], m.a[2]);
+ else if(m.t === 'over') PartyShowOver(m.i);
+}
+function GuestBegin(m){
+ GEn.clear(); GStatic.clear(); Party.State = 'play'; Party.Ready = true; Party.View = ''; Party.Names = m.names || {}; Party.MenuOpen = false;
+ SelMode = ModeKey = m.cfg.mode; const Cfg = Modes[ModeKey]; Rounds = Cfg.Total ? Cfg.Total / Cfg.RoundLen : 0;
+ Stats = m.you.S; Elem = m.you.E; LastElem = m.you.L || 'Fire'; Round = m.round; Pending = 0; Rerolls = 3; Shots = 0; Time = 0;
+ Player = {X: m.you.x, Y: m.you.y, Hp: Stats.MaximumHealth, Inv: 0, Cooldown: 0, KnockX: 0, KnockY: 0, Xp: 0, Level: 1, Recoil: 0, Diff: m.cfg.diff, Mut: m.cfg.mut || {}, Down: false, DashCd: 0, NovaCd: 0};
+ RunStats = {Kills: 0, Damage: 0, Time: 0}; Obj = {Type: 'slay', Have: 0, Need: 1, Done: false}; HpView = Player.Hp; Camera.X = Player.X; Camera.Y = Player.Y;
+ Enemies = []; Bolts = []; EnemyBolts = []; Pickups = []; Crystals = []; Zone = null; Particles = []; Texts = []; Meteor = []; EventKey = null; Party.Others = [];
+ Mode = 'play'; Ui.className = '';
+}
+function GuestSnap(m){
+ if(!Player || Party.State !== 'play') return;
+ Round = m.r; RoundTime = m.rt; Diff = m.df; Obj = {Type: m.ob[0], Have: m.ob[1], Need: m.ob[2], Done: !!m.ob[3]}; Player.Level = m.lv; Player.Xp = m.xp; RunStats.Kills = m.k; RunStats.Time = m.tm; EventKey = m.ev || null;
+ Zone = m.z ? {X: m.z[0], Y: m.z[1], R: m.z[2]} : null; Crystals = (m.cr || []).map(a => ({X: a[0], Y: a[1], Phase: a[0] % 6, Got: !!a[2]}));
+ Meteor = (m.mt || []).map(a => ({X: a[0], Y: a[1], T: a[2], R: a[3]}));
+ Party.Others = [];
+ for(const p of m.pl){
+  if(p[0] === Acct.uid){Player.Hp = p[3]; Player.Down = !p[5]; Player.Inv = p[8] ? .5 : 0; if(Player.Down) Player.Hp = 0}
+  else Party.Others.push({Uid: p[0], N: Party.Names[p[0]] || 'Player', X: p[1], Y: p[2], Hp: p[3], Mh: p[4], Al: !!p[5], Aim: p[6], El: p[7], Inv: p[8]});
+ }
+ const Seen = new Set(), Next = [];
+ for(const a of m.en){
+  const S = GStatic.get(a[0]); if(!S) continue; Seen.add(a[0]);
+  let E = GEn.get(a[0]); if(!E){E = Object.assign({X: a[1], Y: a[2], KnockX: 0, KnockY: 0, SlowT: 0, StunT: 0, Flash: 0, Id: a[0]}, S); GEn.set(a[0], E)}
+  const F = a[5]; E.tx = a[1]; E.ty = a[2]; E.Rot = a[3]; E.Hp = a[4]; E.Burn = F & 1 ? {T: 1} : null; E.SlowT = F & 2 ? 1 : 0; E.StunT = F & 4 ? 1 : 0; E.Shield = F & 8 ? E.MaxHp * .5 : 0; E.Tele = F & 16 ? 1 : 0; if(F & 32) E.Flash = .1;
+  E.SpawnLeft = F & 64 ? a[6] / 100 : 0; if(E.Boss){E.Cast = a[7] || ''; E.SlamT = (a[8] || 0) / 100}
+  Next.push(E);
+ }
+ for(const K of [...GEn.keys()]) if(!Seen.has(K)) GEn.delete(K);
+ if(GStatic.size > 700) for(const K of [...GStatic.keys()]) if(!Seen.has(K)) GStatic.delete(K);
+ Enemies = Next;
+ Bolts = m.bl.map(b => ({X: b[0], Y: b[1], Vx: b[2], Vy: b[3], Elem: ElemNames[b[4]], Size: b[5], Crit: !!b[6], Hit: []}));
+ EnemyBolts = m.eb.map(b => ({X: b[0], Y: b[1], Vx: b[2], Vy: b[3]}));
+ Pickups = m.pk.map(b => ({X: b[0], Y: b[1], Phase: b[0] % 6, Value: 1}));
+ for(const e of (m.kv || [])){Burst(e[0], e[1], e[2], 10, 160, .5); Ring(e[0], e[1], e[2], 30, .3)}
+ if(m.kv && m.kv.length) PlaySfx('Kill');
+}
+function GuestUpdate(Dt){
+ Time += Dt;
+ const Down = Player.Down;
+ let Mx = (Keys['d'] || Keys['arrowright'] ? 1 : 0) - (Keys['a'] || Keys['arrowleft'] ? 1 : 0), My = (Keys['s'] || Keys['arrowdown'] ? 1 : 0) - (Keys['w'] || Keys['arrowup'] ? 1 : 0);
+ if(Joys.Move){Mx += Joys.Move.Dx / JoyRadius; My += Joys.Move.Dy / JoyRadius}
+ let Len = Math.hypot(Mx, My); if(Len > 1){Mx /= Len; My /= Len}
+ const Speed = Down ? 0 : EffSpeed();
+ Player.X = Clamp(Player.X + (Mx * Speed + Player.KnockX) * Dt, PlayerRadius, Arena - PlayerRadius); Player.Y = Clamp(Player.Y + (My * Speed + Player.KnockY) * Dt, PlayerRadius, Arena - PlayerRadius);
+ Player.KnockX *= Math.max(0, 1 - 9 * Dt); Player.KnockY *= Math.max(0, 1 - 9 * Dt); Player.Recoil = Math.max(0, Player.Recoil - Dt * 8);
+ Player.DashCd = Math.max(0, (Player.DashCd || 0) - Dt); Player.NovaCd = Math.max(0, (Player.NovaCd || 0) - Dt); Player.Cooldown -= Dt;
+ let Target = null, ND = Stats.Range;
+ for(const En of Enemies){if(En.SpawnLeft > 0) continue; const D = Math.hypot(En.X - Player.X, En.Y - Player.Y) - En.Radius; if(D < ND){ND = D; Target = En}}
+ if(AutoAim){if(Target) Aim = Math.atan2(Target.Y - Player.Y, Target.X - Player.X)}
+ else if(InputMode === 'touch'){const J = Joys.Aim; if(J && Math.hypot(J.Dx, J.Dy) > 10) Aim = Math.atan2(J.Dy, J.Dx)}
+ else Aim = Math.atan2(MouseY - (Height / 2 + (Player.Y - Camera.Y) * Zoom), MouseX - (Width / 2 + (Player.X - Camera.X) * Zoom));
+ const Holding = InputMode === 'touch' ? !!(Joys.Aim && Math.hypot(Joys.Aim.Dx, Joys.Aim.Dy) > 10) : (Trigger || !!Keys[' ']);
+ Firing = !Down && (AutoAim ? !!Target : Holding);
+ if(Firing && Player.Cooldown <= 0){Player.Cooldown = 1 / EffFireRate(); Player.Recoil = 1}
+ const K = Math.min(1, Dt * 14);
+ for(const E of Enemies){if(E.tx !== undefined){E.X += (E.tx - E.X) * K; E.Y += (E.ty - E.Y) * K} E.Flash -= Dt; E.Rot = E.Rot}
+ for(const B of Bolts){B.X += B.Vx * Dt; B.Y += B.Vy * Dt}
+ for(const B of EnemyBolts){B.X += B.Vx * Dt; B.Y += B.Vy * Dt}
+ Party.InT += Dt;
+ if(Party.InT >= .05){Party.InT = 0; PartyGuestSend({t: 'in', x: +Player.X.toFixed(1), y: +Player.Y.toFixed(1), a: +Aim.toFixed(3), f: Firing ? 1 : 0, i: Player.Inv > 0 ? 1 : 0, n: Party.NovaReq}, true)}
+}
+function GuestFrame(Dt, Blocked){if(Mode === 'play' && !Blocked) GuestUpdate(Dt); else if(Player) Time += Dt}
+
+/* ----- host: remotes, snapshots ----- */
+function PartyFrame(Dt, Blocked){
+ if(!Party.Host){GuestFrame(Dt, Blocked); return}
+ if(Mode === 'play' && !Blocked && HitStop <= 0){Update(Dt); BoltFx(Dt); TraitTick(Dt)}
+ PartyHostTick(Dt);
+}
+function PartyHostTick(Dt){
+ if(Mode === 'level'){PartyLevelTick(Dt); return}
+ if(Mode !== 'play' || !Party.Ready) return;
+ for(const R of Party.Remotes){
+  const I = R.In; R.P.Inv -= Dt; R.P.Cooldown -= Dt; R.P.NovaCd = Math.max(0, (R.P.NovaCd || 0) - Dt);
+  if(!R.Alive) continue;
+  R.P.X = Clamp(I.x, PlayerRadius, Arena - PlayerRadius); R.P.Y = Clamp(I.y, PlayerRadius, Arena - PlayerRadius);
+  if(I.i) R.P.Inv = Math.max(R.P.Inv, .15);
+  R.P.Hp = Math.min(R.S.MaximumHealth, R.P.Hp + R.S.Regeneration * Dt);
+  if(I.f && R.P.Cooldown <= 0) AsPlayer(R, () => Volley(null));
+  if(I.n !== R.NovaSeen){R.NovaSeen = I.n; if(!(R.P.NovaCd > 0)) AsPlayer(R, NovaCore)}
+ }
+ Party.SnapT += Dt;
+ if(Party.SnapT >= 1 / 12){Party.SnapT = 0; PartySnapshots()}
+}
+function PartySnapshots(){
+ const Evs = Party.Evs; Party.Evs = [];
+ const Pl = [[Acct.uid, Math.round(Player.X), Math.round(Player.Y), Math.round(Player.Hp), Math.round(Stats.MaximumHealth), Player.Down ? 0 : 1, +Aim.toFixed(2), Math.max(0, ElemNames.indexOf(LastElem)), Player.Inv > 0 ? 1 : 0]];
+ for(const R of Party.Remotes) Pl.push([R.Uid, Math.round(R.P.X), Math.round(R.P.Y), Math.round(R.P.Hp), Math.round(R.S.MaximumHealth), R.Alive ? 1 : 0, +(R.In.a || 0).toFixed(2), Math.max(0, ElemNames.indexOf(R.Last || 'Fire')), R.P.Inv > 0 ? 1 : 0]);
+ for(const R of Party.Remotes){
+  const C = Party.Conns[R.Uid]; if(!C) continue; const cx = R.P.X, cy = R.P.Y, en = [], ns = [];
+  for(const E of Enemies){
+   if(E.Dead) continue; if(E.Id === undefined) E.Id = Party.EnId++;
+   if(!E.Boss && Math.hypot(E.X - cx, E.Y - cy) > 1000) continue;
+   if(!C.Known.has(E.Id)){C.Known.add(E.Id); ns.push({i: E.Id, r: E.Radius, k: E.Kind, c: E.Color, s: E.Sides, mh: E.MaxHp, el: E.Elite ? 1 : 0, bs: E.Boss || '', tr: E.Trait || '', gb: E.Goblin ? 1 : 0, st: E.SpawnTotal || 1})}
+   const F = (E.Burn ? 1 : 0) | (E.SlowT > 0 ? 2 : 0) | (E.StunT > 0 ? 4 : 0) | (E.Shield > 0 ? 8 : 0) | (E.Tele > 0 ? 16 : 0) | (E.Flash > 0 ? 32 : 0) | (E.SpawnLeft > 0 ? 64 : 0);
+   const Row = [E.Id, Math.round(E.X), Math.round(E.Y), +E.Rot.toFixed(2), Math.round(E.Hp), F, F & 64 ? Math.round(E.SpawnLeft * 100) : 0];
+   if(E.Boss) Row.push(E.Cast || '', Math.round((E.SlamT || 0) * 100));
+   en.push(Row); if(en.length >= 160) break;
+  }
+  if(ns.length) C.Send({t: 'ne', a: ns});
+  const Near = (X, Y, Rd) => Math.abs(X - cx) < Rd && Math.abs(Y - cy) < Rd;
+  C.Send({t: 's', r: Round, rt: Math.round(RoundTime * 10) / 10, df: +Diff.toFixed(2), ob: [Obj.Type, Math.round(Obj.Have * 10) / 10, Obj.Need, Obj.Done ? 1 : 0], lv: Player.Level, xp: Math.round(Player.Xp), k: RunStats.Kills, tm: Math.round(RunStats.Time), ev: EventKey, z: Zone ? [Math.round(Zone.X), Math.round(Zone.Y), Zone.R] : null,
+   cr: Crystals.map(c => [Math.round(c.X), Math.round(c.Y), c.Got ? 1 : 0]), mt: Meteor.map(m => [Math.round(m.X), Math.round(m.Y), +m.T.toFixed(2), m.R]), pl: Pl, en,
+   bl: Bolts.filter(b => Near(b.X, b.Y, 900)).slice(0, 150).map(b => [Math.round(b.X), Math.round(b.Y), Math.round(b.Vx), Math.round(b.Vy), Math.max(0, ElemNames.indexOf(b.Elem)), +b.Size.toFixed(1), b.Crit ? 1 : 0]),
+   eb: EnemyBolts.filter(b => Near(b.X, b.Y, 900)).slice(0, 120).map(b => [Math.round(b.X), Math.round(b.Y), Math.round(b.Vx), Math.round(b.Vy)]),
+   pk: Pickups.filter(p => Near(p.X, p.Y, 700)).slice(0, 120).map(p => [Math.round(p.X), Math.round(p.Y)]), kv: Evs}, true);
+ }
+}
+
+/* ----- start / save / resume / finish ----- */
+function PartyStart(){
+ if(Party.State !== 'lobby' || Party.Members.length < 2 || !Party.Members.every(M => M.Ready)) return;
+ Party.State = 'play'; Party.Ready = false;
+ const Cfg = Party.Cfg, sv = {Up: Meta.Up, SelElem, SelMode, SelDiff, Mut}, Sav = Party.Save;
+ SelMode = Cfg.mode; SelDiff = Cfg.diff; Mut = Object.assign({}, Cfg.mut); Party.Remotes = []; Party.Names = {}; GEn.clear();
+ for(const Mm of Party.Members) Party.Names[Mm.Uid] = Mm.Name;
+ for(const Mm of Party.Members.filter(x => !x.Host)){
+  const C = Party.Conns[Mm.Uid]; Meta.Up = C ? C.Up : {}; SelElem = Mm.Elem; NewRun();
+  const R = {Uid: Mm.Uid, Name: Mm.Name, P: Player, S: Stats, E: Elem, Last: LastElem, In: {x: Player.X, y: Player.Y, a: 0, f: 0, i: 0, n: 0}, Alive: true, Pending: 0, Rerolls: 3, Offers: null, WaitT: 0, NovaSeen: 0, Elem0: Mm.Elem};
+  const Sv = Sav && Sav.Members.find(x => x.Uid === Mm.Uid); if(Sv){Object.assign(R.S, Sv.S); R.E = Object.assign({}, Sv.E); R.P.Hp = R.S.MaximumHealth}
+  Party.Remotes.push(R);
+ }
+ Meta.Up = sv.Up; SelElem = Party.Members[0].Elem; NewRun();
+ if(Sav){const H = Sav.Members.find(x => x.Uid === Acct.uid); if(H){Object.assign(Stats, H.S); Elem = Object.assign({}, H.E); Player.Hp = Stats.MaximumHealth} Player.Level = Sav.Level; Player.Xp = Sav.Xp; Round = Sav.Round; StartRound()}
+ SelMode = sv.SelMode; SelDiff = sv.SelDiff; Mut = sv.Mut; SelElem = sv.SelElem;
+ const All = [Player, ...Party.Remotes.map(R => R.P)];
+ All.forEach((P, I) => {const A = I / All.length * Tau; P.X = Arena / 2 + Math.cos(A) * 60; P.Y = Arena / 2 + Math.sin(A) * 60});
+ for(const R of Party.Remotes){R.In.x = R.P.X; R.In.y = R.P.Y}
+ Camera.X = Player.X; Camera.Y = Player.Y; Party.View = ''; Party.MenuOpen = false; Mode = 'play'; Ui.className = '';
+ for(const R of Party.Remotes) PartySend(R.Uid, {t: 'start', cfg: {mode: Cfg.mode, diff: Cfg.diff, mut: Cfg.mut}, names: Party.Names, round: Round, you: {S: R.S, E: R.E, L: R.Last, x: R.P.X, y: R.P.Y}});
+ Party.Ready = true; PartyDocPatch({state: 'play', public: false}); PartySaveNow();
+}
+function PartySaves(){try{return JSON.parse(StorageGet('GOParties') || '{}') || {}}catch(Err){return {}}}
+function PartySaveNow(){
+ if(!Party.Ready || !Party.Host || !Acct) return;
+ const All = PartySaves(), Prev = All[Party.Id] || Party.Save || {Members: []};
+ const Cur = [{Uid: Acct.uid, Name: PublicName(), Elem0: Party.Members[0] ? Party.Members[0].Elem : SelElem, S: Stats, E: Elem}, ...Party.Remotes.map(R => ({Uid: R.Uid, Name: R.Name, Elem0: R.Elem0, S: R.S, E: R.E}))];
+ All[Party.Id] = {Id: Party.Id, Name: Party.Cfg.name, HostUid: Acct.uid, Cfg: {mode: Party.Cfg.mode, diff: Party.Cfg.diff, mut: Party.Cfg.mut, max: Party.Cfg.max, public: Party.Cfg.public}, Max: Party.Cfg.max, Round, Level: Player.Level, Xp: Player.Xp, Members: Cur.concat(Prev.Members.filter(M => !Cur.some(C => C.Uid === M.Uid))), Updated: Date.now()};
+ const Out = {}; for(const I of Object.keys(All).sort((a, b) => All[b].Updated - All[a].Updated).slice(0, 5)) Out[I] = All[I];
+ StorageSet('GOParties', JSON.stringify(Out)); Party.Save = Out[Party.Id];
+}
+function PartyFinishSave(){const A = PartySaves(); delete A[Party.Id]; StorageSet('GOParties', JSON.stringify(A))}
+function PartyOver(Won){
+ const I = {w: Won ? 1 : 0, r: Round, k: RunStats.Kills, t: Math.floor(RunStats.Time), d: Math.round(RunStats.Damage), df: Player.Diff || SelDiff};
+ PartyBroadcast({t: 'over', i: I}); PartyFinishSave(); PartyShowOver(I);
+}
+function PartyShowOver(I){
+ PlaySfx(I.w ? 'Victory' : 'GameOver'); Mode = 'over';
+ const Gain = Math.min(40, Math.round((I.r * 3 + I.k / 12) * (DiffTbl[I.df] || DiffTbl.Normal).Shards));
+ Meta.Shards += Gain; SaveMeta(); Party.MenuOpen = false;
+ Ui.className = 'On';
+ Ui.innerHTML = `<div class="Box"><h1>${I.w ? 'Victory' : 'Party down'}</h1><p>Co-op · ${HtmlEsc(I.df)}</p><div class="Summary"><div>Round<b>${I.r}</b></div><div>Kills<b>${I.k}</b></div><div>Damage<b>${I.d}</b></div><div>Time<b>${FormatTime(I.t)}</b></div></div><div class="Recap">+${Gain} shards ◆ (co-op is capped at 40 per run)</div><div class="Row"><button class="Btn" data-act="menu">Back to menu</button></div></div>`;
+}
+const GameOverPM = GameOver;
+GameOver = function(W){if(Party.On && Party.Host){PartyOver(W); return} GameOverPM(W)};
+
+/* ----- drawing ----- */
+function DrawParty(){
+ if(!Party.On || !Player) return;
+ const L = Party.Host ? Party.Remotes.map(R => ({N: R.Name, X: R.P.X, Y: R.P.Y, Hp: R.P.Hp, Mh: R.S.MaximumHealth, Al: R.Alive, Aim: R.In.a || 0, El: R.Last || 'Fire', Inv: R.P.Inv})) : Party.Others.map(O => ({N: O.N, X: O.X, Y: O.Y, Hp: O.Hp, Mh: O.Mh, Al: O.Al, Aim: O.Aim, El: ElemNames[O.El] || 'Fire', Inv: O.Inv}));
+ for(const O of L){
+  const C = Elems[O.El].Color;
+  Context.globalAlpha = O.Al ? 1 : .3; Shape(O.X, O.Y, PlayerRadius, 0, 0, C); if(O.Al){Shape(O.X, O.Y, 7, 6, Time * 1.5, C, C); Context.strokeStyle = '#e8ecff'; Context.lineWidth = 3; Context.beginPath(); Context.moveTo(O.X + Math.cos(O.Aim) * 13, O.Y + Math.sin(O.Aim) * 13); Context.lineTo(O.X + Math.cos(O.Aim) * 21, O.Y + Math.sin(O.Aim) * 21); Context.stroke()}
+  Context.globalAlpha = 1; Context.fillStyle = '#e8ecff'; Context.font = '700 11px "Chakra Petch",sans-serif'; Context.textAlign = 'center'; Context.fillText(O.N, O.X, O.Y - 24);
+  if(O.Al){Context.fillStyle = '#000a'; Context.fillRect(O.X - 14, O.Y + 20, 28, 3); Context.fillStyle = C; Context.fillRect(O.X - 14, O.Y + 20, 28 * Clamp(O.Hp / O.Mh, 0, 1), 3)}
+ }
+}
+function DrawPartyHud(BarY){
+ if(!Party.On || !Party.Ready) return;
+ const Me = {N: PublicName(), Hp: Player.Hp, Mh: Stats.MaximumHealth, Al: !Player.Down, El: LastElem};
+ const All = [Me, ...(Party.Host ? Party.Remotes.map(R => ({N: R.Name, Hp: R.P.Hp, Mh: R.S.MaximumHealth, Al: R.Alive, El: R.Last || 'Fire'})) : Party.Others.map(O => ({N: O.N, Hp: O.Hp, Mh: O.Mh, Al: O.Al, El: ElemNames[O.El] || 'Fire'})))];
+ const W = 98; let X = Width / 2 - All.length * W / 2; const Y = BarY + 26;
+ Context.textAlign = 'left'; Context.font = '700 11px "Chakra Petch",sans-serif';
+ for(const P of All){
+  const C = Elems[P.El].Color; Context.globalAlpha = P.Al ? 1 : .45; Context.fillStyle = C; Context.beginPath(); Context.arc(X + 5, Y + 6, 4, 0, Tau); Context.fill();
+  Context.fillStyle = '#e8ecff'; Context.fillText(P.N.slice(0, 9), X + 13, Y + 10);
+  Context.fillStyle = '#000a'; Context.fillRect(X, Y + 15, 88, 4); Context.fillStyle = P.Al ? C : '#8f98c8'; Context.fillRect(X, Y + 15, 88 * Clamp(P.Hp / Math.max(1, P.Mh), 0, 1), 4); Context.globalAlpha = 1; X += W;
+ }
+}
+
+/* ----- screens: hub, host settings, browse, saves, lobby ----- */
+const MPMuts = () => Object.keys(MutInfo).map(K => `<button class="Pick ${Party.Cfg.mut[K] ? 'Sel' : ''}" style="--Chip:#ff5d73" data-act="pmut" data-v="${K}"><span class="PName">${MutInfo[K][0]}</span><span class="PSub">${MutInfo[K][1]}</span></button>`).join('');
+function RenderParty(){
+ if(Mode !== 'menu' || !Party.View) return;
+ Ui.className = 'On'; const V = Party.View, Msg = Party.Msg ? `<div class="Note" style="margin-top:10px">${HtmlEsc(Party.Msg)}</div>` : '';
+ const Back = `<div class="SHead"><button class="Ghost" data-act="pback">← Back</button><h2>Multiplayer</h2></div>`;
+ if(V === 'hub'){
+  const NS = Object.keys(PartySaves()).length;
+  Ui.innerHTML = `<div class="Setup">${Back}${Acct ? '' : '<div class="Panel"><p class="Lead" style="margin:0 0 8px">Sign in to host or join a party. Your progress and name come from your account.</p><button class="JoinBtn" data-act="signin">Sign in / Sign up</button></div>'}
+  <div class="PGrid2 HubGrid"><button class="Pick HubCard" data-act="phost"><b>Host a party</b><span>Public or private, up to 4 players. Everyone plays a different element.</span></button>
+  <button class="Pick HubCard" data-act="pbrowse"><b>Public parties</b><span>See open parties and jump into one.</span></button>
+  <div class="Panel HubCard"><b>Join with a code</b><input id="PCode" class="TxtIn" maxlength="6" placeholder="ABC123" autocomplete="off" style="text-transform:uppercase"><button class="Btn" data-act="pjoin">Join</button></div>
+  <button class="Pick HubCard" data-act="psaves"><b>My parties</b><span>Resume a saved party${NS ? ' (' + NS + ')' : ''}. Original members keep their slot.</span></button></div>${Msg}</div>`;
+ }else if(V === 'host'){
+  const C = Party.Cfg, Mc = Object.keys(Modes).map(K => `<button class="Pick ${K === C.mode ? 'Sel' : ''}" style="--Chip:#4ff0d6" data-act="pset" data-k="mode" data-v="${K}"><span class="PName">${K}</span></button>`).join('');
+  const Dc = Object.keys(DiffTbl).map(K => `<button class="Pick ${K === C.diff ? 'Sel' : ''}" style="--Chip:${DiffTbl[K].Color}" data-act="pset" data-k="diff" data-v="${K}"><span class="PName">${K}</span></button>`).join('');
+  const Xc = [2, 3, 4].map(N => `<button class="Pick ${N === C.max ? 'Sel' : ''}" style="--Chip:#9b7bff" data-act="pset" data-k="max" data-v="${N}"><span class="PName">${N} players</span></button>`).join('');
+  const El = ElemNames.map(N => `<button class="Pick ElemCard ${N === SelElem ? 'Sel' : ''}" style="--Chip:${Elems[N].Color}" data-elem="${N}"><span class="EGlyph">${ElemIcon(N, 22)}</span><span class="EText"><b class="PName">${N}</b></span></button>`).join('');
+  Ui.innerHTML = `<div class="Setup"><div class="SHead"><button class="Ghost" data-act="pback">← Back</button><h2>Host a party</h2></div>
+  <div class="SGrid"><div class="Panel"><div class="PTitle">Party name</div><input id="PName" class="TxtIn" maxlength="24" value="${HtmlEsc(C.name)}"><div class="PTitle" style="margin-top:10px">Visibility</div><div class="PGrid2"><button class="Pick ${C.public ? 'Sel' : ''}" style="--Chip:#4ff0d6" data-act="pset" data-k="public" data-v="1"><span class="PName">Public</span><span class="PSub">Listed for everyone</span></button><button class="Pick ${C.public ? '' : 'Sel'}" style="--Chip:#9b7bff" data-act="pset" data-k="public" data-v="0"><span class="PName">Private</span><span class="PSub">Join with a code</span></button></div></div>
+  <div class="Panel"><div class="PTitle">Max players</div><div class="PGrid3">${Xc}</div><div class="PTitle" style="margin-top:10px">Mode</div><div class="PGrid3">${Mc}</div></div>
+  <div class="Panel"><div class="PTitle">Difficulty</div><div class="PGrid4">${Dc}</div></div><div class="Panel"><div class="PTitle">Your element</div><div class="PGrid4">${El}</div></div>
+  <div class="Panel SWide"><div class="PTitle">Mutators</div><div class="PGrid5">${MPMuts()}</div></div></div>
+  <div class="SFoot"><div class="SSum">${HtmlEsc(C.name)}<small>${C.public ? 'Public' : 'Private'} · ${C.mode} · ${C.diff} · up to ${C.max}</small></div><button class="PlayBtn" data-act="pcreate">Create party</button></div>${Msg}</div>`;
+ }else if(V === 'browse'){
+  const Rows = Party.List.length ? Party.List.map(P => `<div class="BRow PRow"><span class="BName">${HtmlEsc(P.name)}<small> · ${HtmlEsc(P.hostName)}</small></span><span class="BScore">${P.count}/${P.max}<small>${HtmlEsc(P.mode)} · ${HtmlEsc(P.diff)}${P.mutN ? ' · ' + P.mutN + ' mut' : ''}${P.resume ? ' · saved' : ''}</small></span><button class="JoinBtn" data-act="pjoincode" data-v="${HtmlEsc(P.code)}">Join</button></div>`).join('') : '<div class="Note">No open public parties right now. Host one!</div>';
+  Ui.innerHTML = `<div class="Setup">${Back}<div class="Panel"><div class="PTitle">Public parties</div><div class="BList WsScroll">${Rows}</div></div>${Msg}</div>`;
+ }else if(V === 'saves'){
+  const S = Object.values(PartySaves()).sort((a, b) => b.Updated - a.Updated);
+  const Rows = S.length ? S.map(P => `<div class="BRow PRow"><span class="BName">${HtmlEsc(P.Name)}<small> · ${P.Members.map(M => HtmlEsc(M.Name)).join(', ')}</small></span><span class="BScore">Round ${P.Round}<small>${HtmlEsc(P.Cfg.mode)} · ${HtmlEsc(P.Cfg.diff)} · ${P.Members.length}/${P.Max}</small></span><span><button class="JoinBtn" data-act="presume" data-v="${HtmlEsc(P.Id)}">Resume</button> <button class="Ghost" data-act="pdelsave" data-v="${HtmlEsc(P.Id)}">Delete</button></span></div>`).join('') : '<div class="Note">No saved parties yet. A party is saved automatically at the start of every round.</div>';
+  Ui.innerHTML = `<div class="Setup">${Back}<div class="Panel"><div class="PTitle">My parties</div><div class="BList WsScroll">${Rows}</div><p class="PSub" style="margin-top:8px">Only the original members can rejoin a full party. If it had fewer than ${'its max'} players, new players can take the empty slots.</p></div>${Msg}</div>`;
+ }else if(V === 'connecting'){
+  Ui.innerHTML = `<div class="Setup">${Back}<div class="Panel" style="text-align:center"><div class="GSpin" style="margin:14px auto"></div><p class="Lead" style="margin:0 auto">${HtmlEsc(Party.Msg || 'Connecting…')}</p></div></div>`;
+ }else if(V === 'lobby'){
+  const Me = Acct ? Acct.uid : '', Mem = Party.Members, IsH = Party.Host, Cfg = Party.Cfg, Mine = Mem.find(x => x.Uid === Me);
+  const Locked = new Set([...Mem.filter(x => x.Uid !== Me).map(x => x.Elem), ...(Party.Locks || [])]), Fixed = IsH ? !!(Party.Reserved && Party.Reserved.has(Me)) : false;
+  const MR = Mem.map(x => `<div class="BRow PRow"><span class="BName">${x.Host ? '👑 ' : ''}${HtmlEsc(x.Name)}</span><span class="BScore" style="color:${Elems[x.Elem].Color}">${ElemIcon(x.Elem, 16)} ${x.Elem}</span><span>${x.Host ? '' : (x.Ready ? '✔ Ready' : '… not ready')}${IsH && !x.Host ? ' <button class="Ghost" data-act="pkick" data-v="' + HtmlEsc(x.Uid) + '">Kick</button>' : ''}</span></div>`).join('');
+  const EC = ElemNames.map(N => `<button class="Pick ElemCard ${Mine && Mine.Elem === N ? 'Sel' : ''}" style="--Chip:${Elems[N].Color};${Locked.has(N) ? 'opacity:.35' : ''}" data-act="pelem" data-v="${N}" ${Locked.has(N) ? 'disabled' : ''}><span class="EGlyph">${ElemIcon(N, 22)}</span><span class="EText"><b class="PName">${N}</b></span></button>`).join('');
+  const Ready = Mem.length >= 2 && Mem.every(x => x.Ready), Mc = Object.values(Cfg.mut || {}).filter(Boolean).length;
+  Ui.innerHTML = `<div class="Setup"><div class="SHead"><button class="Ghost" data-act="pleave">← Leave</button><h2>${HtmlEsc(Cfg.name)}</h2></div>
+  <div class="SGrid"><div class="Panel"><div class="PTitle">Party code</div><div class="PCode">${HtmlEsc(Party.Code)}</div><p class="PSub" style="margin:6px 0 0">${Cfg.pub || Cfg.public ? 'Public: listed in Public parties.' : 'Private: share this code.'}</p><div class="PGrid2" style="margin-top:10px"><div class="PSub">${Cfg.mode} · ${Cfg.diff}${Mc ? ' · ' + Mc + ' mutators' : ''}</div><div class="PSub">${Mem.length}/${Cfg.max} players${Party.Reserved || (Party.Lobby && Party.Lobby.res) ? ' · saved party' : ''}</div></div></div>
+  <div class="Panel"><div class="PTitle">Players</div><div class="BList">${MR}</div></div>
+  <div class="Panel SWide"><div class="PTitle">Your element ${Fixed ? '(locked: saved party)' : ''}</div><div class="PGrid4">${EC}</div></div></div>
+  <div class="SFoot"><div class="SSum">${IsH ? (Ready ? 'Everyone is ready' : 'Waiting for players to get ready') : 'Waiting for the host to start'}<small>${Mem.length} / ${Cfg.max}</small></div>${IsH ? `<button class="PlayBtn" data-act="pstart" ${Ready ? '' : 'disabled'}><span>▶</span>Start</button>` : `<button class="PlayBtn" data-act="pready">${Mine && Mine.Ready ? 'Not ready' : 'Ready'}</button>`}</div>${Msg}</div>`;
+ }
+}
+let PartyUnsubBrowse = null;
+async function PartyBrowse(){
+ if(!PartyReady()){Party.View = 'hub'; RenderParty(); return}
+ Party.View = 'browse'; Party.List = []; Party.Msg = ''; RenderParty();
+ try{
+  const M = await FbLoad();
+  if(PartyUnsubBrowse) PartyUnsubBrowse();
+  PartyUnsubBrowse = M.F.onSnapshot(M.F.query(M.F.collection(M.db, 'parties'), M.F.where('public', '==', true), M.F.limit(30)), S => {
+   Party.List = S.docs.map(D => D.data()).filter(P => P.state === 'lobby' && P.expiresAt > Date.now() && P.count < P.max && P.hostUid !== (Acct && Acct.uid)).sort((a, b) => b.createdAt - a.createdAt); if(Party.View === 'browse') RenderParty();
+  });
+ }catch(Err){Party.Msg = 'Could not load parties: ' + FbErr(Err); RenderParty()}
+}
+function PartyStopBrowse(){if(PartyUnsubBrowse){try{PartyUnsubBrowse()}catch(Err){} PartyUnsubBrowse = null}}
+Ui.addEventListener('click', Ev => {
+ const B = Ev.target.closest('button'); if(!B) return; const A = B.dataset.act, V = B.dataset.v, Stop = () => Ev.stopImmediatePropagation();
+ if(A === 'mp'){Party.View = 'hub'; Party.Msg = ''; ShowMenu(); Stop()}
+ else if(A === 'pback'){PartyStopBrowse(); Party.Msg = ''; if(Party.View === 'hub') Party.View = ''; else Party.View = 'hub'; ShowMenu(); Stop()}
+ else if(A === 'phost'){Party.Cfg = FreshCfg(); Party.Msg = ''; Party.View = 'host'; ShowMenu(); Stop()}
+ else if(A === 'pbrowse'){PartyBrowse(); Stop()}
+ else if(A === 'psaves'){Party.View = 'saves'; Party.Msg = ''; ShowMenu(); Stop()}
+ else if(A === 'pjoin'){GuestJoin((document.getElementById('PCode') || {}).value); Stop()}
+ else if(A === 'pjoincode'){PartyStopBrowse(); GuestJoin(V); Stop()}
+ else if(A === 'pset'){const K = B.dataset.k; Party.Cfg[K] = K === 'max' ? +V : K === 'public' ? V === '1' : V; const NI = document.getElementById('PName'); if(NI) Party.Cfg.name = SafeName(NI.value) || Party.Cfg.name; ShowMenu(); Stop()}
+ else if(A === 'pmut'){Party.Cfg.mut[V] = !Party.Cfg.mut[V]; const NI = document.getElementById('PName'); if(NI) Party.Cfg.name = SafeName(NI.value) || Party.Cfg.name; ShowMenu(); Stop()}
+ else if(A === 'pcreate'){const NI = document.getElementById('PName'); if(NI) Party.Cfg.name = (NI.value || '').replace(/[^A-Za-z0-9 _.\-!?]/g, '').trim().slice(0, 24) || 'Party'; PartyCreate(null); Stop()}
+ else if(A === 'presume'){const S = PartySaves()[V]; if(S){Party.Cfg = {name: S.Name, public: false, max: S.Max, mode: S.Cfg.mode, diff: S.Cfg.diff, mut: S.Cfg.mut || {}}; PartyCreate(S)} Stop()}
+ else if(A === 'pdelsave'){const All = PartySaves(); delete All[V]; StorageSet('GOParties', JSON.stringify(All)); ShowMenu(); Stop()}
+ else if(A === 'pleave'){PartyLeave(); Party.View = 'hub'; ShowMenu(); Stop()}
+ else if(A === 'pkick'){const C = Party.Conns[V]; if(C){C.Send({t: 'reject', why: 'The host removed you from the party.'}); setTimeout(() => HostDrop(V), 200)} Stop()}
+ else if(A === 'pelem'){if(Party.Host){const Mm = Party.Members.find(x => x.Uid === Acct.uid); if(Mm && !(Party.Reserved && Party.Reserved.has(Acct.uid)) && !LockedElems(Acct.uid).has(V)){Mm.Elem = V; PartyLobbyChanged()}} else PartyGuestSend({t: 'elem', e: V}); Stop()}
+ else if(A === 'pready'){const Mm = Party.Members.find(x => x.Uid === Acct.uid), Nv = !(Mm && Mm.Ready); PartyGuestSend({t: 'ready', v: Nv}); Stop()}
+ else if(A === 'pstart'){PartyStart(); Stop()}
+ else if(B.dataset.elem && Party.View === 'host'){SelElem = B.dataset.elem; const NI = document.getElementById('PName'); if(NI) Party.Cfg.name = SafeName(NI.value) || Party.Cfg.name; ShowMenu(); Stop()}
+}, true);
+
 /* ---------- attract mode: a live demo fights behind the menu ---------- */
 const Demo = {T: 0, Foes: [], Shots: [], Fx: [], Cd: 0, Spawn: 0, Aim: 0, Shot: 0, Kills: 0};
 const DemoBurst = (X, Y, Color, N, V) => {for(let I = 0; I < N && Demo.Fx.length < 220; I++){const A = RandRange(0, Tau), S = RandRange(.3, 1) * V; Demo.Fx.push({X, Y, Vx: Math.cos(A) * S, Vy: Math.sin(A) * S, L: .5, M: .5, C: Color, S: RandRange(1.5, 3)})}};
@@ -2248,7 +2786,7 @@ function DrawAttract(){
 
 /* menu gets a see-through layer so the demo shows behind it */
 const ShowMenuLive = ShowMenu;
-ShowMenu = function(){if(SetupOpen && Mode === 'menu'){RenderSetup(); return} ShowMenuLive(); Ui.classList.add('Menu'); if(MenuTab === 'rank') BoardEnsure()};
+ShowMenu = function(){if(Party.View && Mode === 'menu'){RenderParty(); return} if(SetupOpen && Mode === 'menu'){RenderSetup(); return} ShowMenuLive(); Ui.classList.add('Menu'); if(MenuTab === 'rank') BoardEnsure()};
 
 for(const K of Object.keys(Modes)) SaveStore.Get(K);
 if(WasWiped) MenuNote = 'Fresh start: all previous data was reset. Sign in to keep your new progress online.';

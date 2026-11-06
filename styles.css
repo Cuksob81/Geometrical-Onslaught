@@ -636,3 +636,13 @@ body.GateOn #UiLayer { visibility:hidden; }
 .GBtn.Dark { background:#1b2140; color:#e8ecff; border:1px solid #2a3166; box-shadow:none; }
 .GBtn.Sm { min-height:46px; font-size:15px; } .GRow { display:flex; gap:10px; width:100%; }
 .Diag { white-space:pre-wrap; text-align:left; font:12px/1.5 monospace; background:#0b0e1d; padding:10px; border-radius:8px; max-height:210px; overflow:auto; margin:10px 0 0; }
+
+.PlayRow { display:flex; gap:12px; flex-wrap:wrap; }
+.PlayBtn.Alt { background:linear-gradient(135deg,#9b7bff,#c9b8ff); animation:none; }
+.PlayBtn:disabled { opacity:.4; cursor:not-allowed; animation:none; }
+.HubGrid { margin-top:4px; } .HubCard { display:flex; flex-direction:column; gap:6px; padding:16px; text-align:left; } .HubCard b { font-size:18px; } .HubCard span { font-size:13px; color:var(--Dim); line-height:1.4; }
+.PCode { font:700 44px/1 monospace; letter-spacing:.2em; color:var(--Cyan); user-select:all; }
+.PRow { grid-template-columns:1fr auto auto; } .PRow small { color:var(--Dim); font-weight:400; margin-left:6px; }
+.Pick:disabled { cursor:not-allowed; }
+@media (max-height:520px) { .PCode { font-size:28px; } .HubCard { padding:10px; } .HubCard span { display:none; } }
+.PRow .BScore { display:flex; align-items:center; gap:6px; white-space:nowrap; } .PRow .BScore svg { flex:none; }
